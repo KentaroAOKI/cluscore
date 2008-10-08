@@ -24,10 +24,8 @@ struct cc_arraylist_properties
 	cc_arraylist_node *top;
 	cc_arraylist_node *bottom;
 	cc_arraylist_node *cursor;
+	int cursor_index;
 	int length;
-	
-	cc_arraylist_node *cache_node;
-	int cache_index;
 };
 
 cc_arraylist *cc_arraylist_new(void);
