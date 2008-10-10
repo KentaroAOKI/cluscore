@@ -77,7 +77,7 @@ int cc_arraylist_setCursor(cc_arraylist *list, int index)
 	if (list != NULL && list->properties != NULL)
 	{
 		properties = list->properties;
-		if (properties->top != NULL && properties->length > index)
+		if (properties->top != NULL && properties->length > index && index >= 0)
 		{
 			diff_index = index - properties->cursor_index;
 			if (properties->cursor != NULL && index >= abs(diff_index))
@@ -226,6 +226,8 @@ void cc_arraylist_insertWithIndex(cc_arraylist *list, cc_object *insertobject, i
 {
 	if (cc_arraylist_setCursor(list, index) >= 0) {
 		cc_arraylist_insert(list, insertobject);
+	} else if (index >= 0) {
+		cc_arraylist_add(list, insertobject);
 	}
 	return;
 }
@@ -261,8 +263,9 @@ void cc_arraylist_remove(cc_arraylist *list)
 
 void cc_arraylist_removeWithIndex(cc_arraylist *list, int index)
 {
-	cc_arraylist_setCursor(list, index);
-	cc_arraylist_remove(list);
+	if (cc_arraylist_setCursor(list, index) >= 0) {
+		cc_arraylist_remove(list);
+	}
 	return;
 }
 
