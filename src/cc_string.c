@@ -84,7 +84,7 @@ void cc_string_catenate(cc_string *base_string, cc_object *string) {
 		if (check_object_id(string, string)) {
 			/* string object */
 			properties = string->properties;
-			cc_arraylist_add(base_properties->nextstrings, string);
+			cc_arraylist_addAtBack(base_properties->nextstrings, string);
 			base_properties->nextlength = base_properties->nextlength + properties->length + properties->nextlength;
 		} else {
 			/* other object */
@@ -93,7 +93,7 @@ void cc_string_catenate(cc_string *base_string, cc_object *string) {
 			object_cstring = string->tocstring(string);
 			object_string = cc_string_new(object_cstring);
 			properties = object_string->properties;
-			cc_arraylist_add(base_properties->nextstrings, object_string);
+			cc_arraylist_addAtBack(base_properties->nextstrings, object_string);
 			base_properties->nextlength = base_properties->nextlength + properties->length + properties->nextlength;
 			cc_string_dispose(object_string);
 			free(object_cstring);

@@ -26,9 +26,9 @@ void cc_arraylist_properties_dispose(cc_arraylist_properties *properties)
 	cc_arraylist_node *node_next;
 	if (properties != NULL)
 	{
-		if (properties->top != NULL)
+		if (properties->front != NULL)
 		{
-			for (node = properties->top; node != NULL; node = node_next)
+			for (node = properties->front; node != NULL; node = node_next)
 			{
 				node_next = node->next;
 				cc_object_release(node->object);
@@ -57,8 +57,9 @@ void cc_arraylist_dispose(cc_arraylist *list)
 
 int cc_arraylist_getLength(cc_arraylist *list)
 {
-	int result = -1;
 	cc_arraylist_properties *properties;
+	int result = -1;
+	
 	if (list != NULL && list->properties != NULL) {
 		properties = list->properties;
 		result = properties->length;
@@ -77,7 +78,7 @@ int cc_arraylist_setCursor(cc_arraylist *list, int index)
 	if (list != NULL && list->properties != NULL)
 	{
 		properties = list->properties;
-		if (properties->top != NULL && properties->length > index && index >= 0)
+		if (properties->front != NULL && properties->length > index && index >= 0)
 		{
 			diff_index = index - properties->cursor_index;
 			if (properties->cursor != NULL && index >= abs(diff_index))
@@ -88,7 +89,7 @@ int cc_arraylist_setCursor(cc_arraylist *list, int index)
 			} else {
 				countway = 1;
 				count = 0;
-				node = properties->top;
+				node = properties->front;
 			}
 			if (countway > 0)
 			{
@@ -105,7 +106,7 @@ int cc_arraylist_setCursor(cc_arraylist *list, int index)
 				while (node != NULL)
 				{
 					count --;
-					node = node->prev;
+					node = node->previous;
 					if (count == index)
 					{
 						break;
@@ -119,7 +120,7 @@ int cc_arraylist_setCursor(cc_arraylist *list, int index)
 	return count;
 }
 
-int cc_arraylist_prevCursor(cc_arraylist *list)
+int cc_arraylist_previousCursor(cc_arraylist *list)
 {
 	cc_arraylist_properties *properties;
 	int result = -1;
@@ -127,7 +128,7 @@ int cc_arraylist_prevCursor(cc_arraylist *list)
 	if (list != NULL && list->properties != NULL) {
 		properties = list->properties;
 		if (properties->cursor != NULL) {
-			properties->cursor = properties->cursor->prev;
+			properties->cursor = properties->cursor->previous;
 			properties->cursor_index --;
 			result = properties->cursor_index;
 		}
@@ -153,10 +154,11 @@ int cc_arraylist_nextCursor(cc_arraylist *list)
 	return result;
 }
 
-void cc_arraylist_add(cc_arraylist *list, cc_object *addobject)
+int cc_arraylist_addAtFront(cc_arraylist *list, cc_object *addobject)
 {
 	cc_arraylist_properties *properties;
 	cc_arraylist_node *node;
+	int result = -1;
 
 	if (list != NULL && list->properties != NULL && addobject != NULL)
 	{
@@ -168,33 +170,74 @@ void cc_arraylist_add(cc_arraylist *list, cc_object *addobject)
 		node = malloc(sizeof(cc_arraylist_node));
 		node->object = addobject;
 		node->parent = properties;
-		node->prev = properties->bottom;
+		node->previous = NULL;
+		node->next = properties->front;
+
+		/* Adds node to an arraylist. */
+		properties->length ++;
+		if (properties->front == NULL)
+		{
+			/* first time. */
+			properties->front = node;
+			properties->back = node;
+			properties->cursor = node;
+		} else {
+			properties->front->previous = node;
+			properties->front = node;
+		}
+		/* update cursor */
+		properties->cursor = node;
+		properties->cursor_index = 0;
+		result = properties->cursor_index;
+	}
+	return result;
+}
+
+int cc_arraylist_addAtBack(cc_arraylist *list, cc_object *addobject)
+{
+	cc_arraylist_properties *properties;
+	cc_arraylist_node *node;
+	int result = -1;
+
+	if (list != NULL && list->properties != NULL && addobject != NULL)
+	{
+		properties = list->properties;
+
+		cc_object_grab(addobject);
+
+		/* Sets property in node. */
+		node = malloc(sizeof(cc_arraylist_node));
+		node->object = addobject;
+		node->parent = properties;
+		node->previous = properties->back;
 		node->next = NULL;
 
 		/* Adds node to an arraylist. */
 		properties->length ++;
-		if (properties->top == NULL)
+		if (properties->front == NULL)
 		{
 			/* first time. */
-			properties->top = node;
-			properties->bottom = node;
+			properties->front = node;
+			properties->back = node;
 			properties->cursor = node;
 		} else {
-			properties->bottom->next = node;
-			properties->bottom = node;
+			properties->back->next = node;
+			properties->back = node;
 		}
 		/* update cursor */
 		properties->cursor = node;
 		properties->cursor_index = properties->length - 1;
+		result = properties->cursor_index;
 	}
-	return;
+	return result;
 }
 
-void cc_arraylist_insert(cc_arraylist *list, cc_object *insertobject)
+int cc_arraylist_addAtCursor(cc_arraylist *list, cc_object *insertobject)
 {
 	cc_arraylist_properties *properties;
 	cc_arraylist_node *node;
 	cc_arraylist_node *insertnode;
+	int result = -1;
 
 	if (list != NULL && list->properties != NULL && insertobject != NULL) {
 		properties = list->properties;
@@ -205,37 +248,109 @@ void cc_arraylist_insert(cc_arraylist *list, cc_object *insertobject)
 			node = malloc(sizeof(cc_arraylist_node));
 			node->object = insertobject;
 			node->parent = properties;
-			node->prev = insertnode->prev;
+			node->previous = insertnode->previous;
 			node->next = insertnode;
-			if (insertnode->prev != NULL) {
-				insertnode->prev->next = node;
+			if (insertnode->previous != NULL) {
+				insertnode->previous->next = node;
 			} else {
-				properties->top = node;
+				properties->front = node;
 			}
-			insertnode->prev = node;
+			insertnode->previous = node;
 			/* update cursor */
 			properties->cursor = node;
+			result = properties->cursor_index;
 		} else {
-			cc_arraylist_add(list, insertobject);
+			result = cc_arraylist_addAtBack(list, insertobject);
 		}
 	}
-	return;
+	return result;
 }
 
-void cc_arraylist_insertWithIndex(cc_arraylist *list, cc_object *insertobject, int index)
+int cc_arraylist_addAt(cc_arraylist *list, cc_object *insertobject, int index)
 {
+	int result = -1;
+
 	if (cc_arraylist_setCursor(list, index) >= 0) {
-		cc_arraylist_insert(list, insertobject);
-	} else if (index >= 0) {
-		cc_arraylist_add(list, insertobject);
+		result = cc_arraylist_addAtCursor(list, insertobject);
 	}
-	return;
+	return result;
 }
 
-void cc_arraylist_remove(cc_arraylist *list)
+int cc_arraylist_addDynamicAt(cc_arraylist *list, cc_object *insertobject, int index)
+{
+	int result = -1;
+
+	if (cc_arraylist_setCursor(list, index) >= 0) {
+		result = cc_arraylist_addAtCursor(list, insertobject);
+	} else if (index >= 0) {
+		result = cc_arraylist_addAtBack(list, insertobject);
+	} else if (index < 0) {
+		result = cc_arraylist_addAtFront(list, insertobject);
+	}
+	return result;
+}
+
+int cc_arraylist_removeAtFront(cc_arraylist *list)
 {
 	cc_arraylist_properties *properties;
 	cc_arraylist_node *removenode;
+	int result = -1;
+
+	if (list != NULL && list->properties != NULL) {
+		properties = list->properties;
+		removenode = properties->front;
+		if (removenode != NULL) {
+			properties->length --;
+			cc_object_release(removenode->object);
+			properties->front = removenode->next;
+			if (removenode->next == NULL) {
+				properties->back = NULL;
+			} else {
+				removenode->next->previous = NULL;
+			}
+			/* update cursor */
+			properties->cursor = properties->front;
+			properties->cursor_index = 0;
+			result = properties->cursor_index;
+			free(removenode);
+		}
+	}
+	return result;
+}
+
+int cc_arraylist_removeAtBack(cc_arraylist *list)
+{
+	cc_arraylist_properties *properties;
+	cc_arraylist_node *removenode;
+	int result = -1;
+
+	if (list != NULL && list->properties != NULL) {
+		properties = list->properties;
+		removenode = properties->back;
+		if (removenode != NULL) {
+			properties->length --;
+			cc_object_release(removenode->object);
+			properties->back = removenode->previous;
+			if (removenode->previous == NULL) {
+				properties->front = NULL;
+			} else {
+				removenode->previous->next = NULL;
+			}
+			/* update cursor */
+			properties->cursor = properties->back;
+			properties->cursor_index = properties->length -1;
+			result = properties->cursor_index;
+			free(removenode);
+		}
+	}
+	return result;
+}
+
+int cc_arraylist_removeAtCursor(cc_arraylist *list)
+{
+	cc_arraylist_properties *properties;
+	cc_arraylist_node *removenode;
+	int result = -1;
 
 	if (list != NULL && list->properties != NULL) {
 		properties = list->properties;
@@ -243,33 +358,80 @@ void cc_arraylist_remove(cc_arraylist *list)
 		if (removenode != NULL) {
 			properties->length --;
 			cc_object_release(removenode->object);
-			if (removenode->prev == NULL) {
-				properties->top = removenode->next;
+			if (removenode->previous == NULL) {
+				properties->front = removenode->next;
 			} else {
-				removenode->prev->next = removenode->next;
+				removenode->previous->next = removenode->next;
 			}
 			if (removenode->next == NULL) {
-				properties->bottom = removenode->prev;
+				properties->back = removenode->previous;
 			} else {
-				removenode->next->prev = removenode->prev;
+				removenode->next->previous = removenode->previous;
 			}
 			/* update cursor */
 			properties->cursor = removenode->next;
+			result = properties->cursor_index;
 			free(removenode);
 		}
 	}
-	return;
+	return result;
 }
 
-void cc_arraylist_removeWithIndex(cc_arraylist *list, int index)
+int cc_arraylist_removeAt(cc_arraylist *list, int index)
 {
+	int result = -1;
+	
 	if (cc_arraylist_setCursor(list, index) >= 0) {
-		cc_arraylist_remove(list);
+		result = cc_arraylist_removeAtCursor(list);
 	}
-	return;
+	return result;
 }
 
-cc_object *cc_arraylist_get(cc_arraylist *list)
+int cc_arraylist_removeDynamicAt(cc_arraylist *list, int index)
+{
+	int result = -1;
+	
+	if (cc_arraylist_setCursor(list, index) >= 0) {
+		result = cc_arraylist_removeAtCursor(list);
+	} else if (index >= 0) {
+		result = cc_arraylist_removeAtBack(list);
+	} else if (index < 0) {
+		result = cc_arraylist_removeAtFront(list);
+	}
+	return result;
+}
+
+cc_object *cc_arraylist_getAtFront(cc_arraylist *list)
+{
+	cc_arraylist_properties *properties;
+	cc_object *result_object = NULL;
+
+	if (list != NULL && list->properties != NULL) {
+		properties = list->properties;
+		if (properties->front != NULL) {
+			result_object = properties->front->object;
+			cc_object_grab(result_object);
+		}
+	}
+	return result_object;
+}
+
+cc_object *cc_arraylist_getAtBack(cc_arraylist *list)
+{
+	cc_arraylist_properties *properties;
+	cc_object *result_object = NULL;
+
+	if (list != NULL && list->properties != NULL) {
+		properties = list->properties;
+		if (properties->back != NULL) {
+			result_object = properties->back->object;
+			cc_object_grab(result_object);
+		}
+	}
+	return result_object;
+}
+
+cc_object *cc_arraylist_getAtCursor(cc_arraylist *list)
 {
 	cc_arraylist_properties *properties;
 	cc_object *result_object = NULL;
@@ -284,10 +446,10 @@ cc_object *cc_arraylist_get(cc_arraylist *list)
 	return result_object;
 }
 
-cc_object *cc_arraylist_getWithIndex(cc_arraylist *list, int index)
+cc_object *cc_arraylist_getAt(cc_arraylist *list, int index)
 {
 	cc_arraylist_setCursor(list, index);
-	return cc_arraylist_get(list);
+	return cc_arraylist_getAtCursor(list);
 }
 
 char *cc_arraylist_tocstring(cc_arraylist *object)
@@ -305,14 +467,14 @@ char *cc_arraylist_tocstring(cc_arraylist *object)
 	if (object != NULL && object->properties != NULL)
 	{
 		properties = object->properties;
-		if (properties->top != NULL) {
+		if (properties->front != NULL) {
 			/* Initializes cstring buffer. */
 			cstring = malloc(add_alloc_size);
 			memset(cstring, 0, add_alloc_size);
 			cstring_length = 0;
 			cstring_alloc_size = add_alloc_size;
 			/* Builds cstring. */
-			for (node = properties->top; node != NULL; node = node_next)
+			for (node = properties->front; node != NULL; node = node_next)
 			{
 				node_next = node->next;
 				if (node->object->tocstring == NULL)
