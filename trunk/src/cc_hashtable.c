@@ -136,13 +136,13 @@ void cc_hashtable_set(cc_hashtable *table, char *key, cc_object *object)
 		hashvalue = cc_hashtable_calchashvalue(table, key);
 		node = properties->table[hashvalue];
 		for (cc_arraylist_setCursor(node, 0)
-				;(leaf_object = cc_arraylist_get(node)) != NULL
+				;(leaf_object = cc_arraylist_getAtCursor(node)) != NULL
 				;cc_arraylist_nextCursor(node))
 		{
 			leaf_node = (cc_hashtable_node *)leaf_object->properties;
 			if (strcmp(key, leaf_node->key) == 0)
 			{
-				cc_arraylist_remove(node);
+				cc_arraylist_removeAtCursor(node);
 				break;
 			}
 		}
