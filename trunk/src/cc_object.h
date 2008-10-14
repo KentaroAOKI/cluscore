@@ -12,7 +12,8 @@
 	int reference_count;\
 	void *repleced_object;\
 	void (*cb_dispose_properties)(void *properties);\
-	char *(*tocstring)(void *object);
+	char *(*tocstring)(void *object);\
+	char *(*compare)(void *object);
 
 typedef struct cc_object_s {
 	CC_OBJECT_PROPERTIES

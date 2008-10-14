@@ -67,7 +67,7 @@ int cc_arraylist_getLength(cc_arraylist *list)
 	return result;
 }
 
-int cc_arraylist_setCursor(cc_arraylist *list, int index)
+int cc_arraylist_setCursorAt(cc_arraylist *list, int index)
 {
 	cc_arraylist_properties *properties;
 	cc_arraylist_node *node = NULL;
@@ -270,7 +270,7 @@ int cc_arraylist_addAt(cc_arraylist *list, cc_object *insertobject, int index)
 {
 	int result = -1;
 
-	if (cc_arraylist_setCursor(list, index) >= 0) {
+	if (cc_arraylist_setCursorAt(list, index) >= 0) {
 		result = cc_arraylist_addAtCursor(list, insertobject);
 	}
 	return result;
@@ -280,7 +280,7 @@ int cc_arraylist_addDynamicAt(cc_arraylist *list, cc_object *insertobject, int i
 {
 	int result = -1;
 
-	if (cc_arraylist_setCursor(list, index) >= 0) {
+	if (cc_arraylist_setCursorAt(list, index) >= 0) {
 		result = cc_arraylist_addAtCursor(list, insertobject);
 	} else if (index >= 0) {
 		result = cc_arraylist_addAtBack(list, insertobject);
@@ -311,8 +311,8 @@ int cc_arraylist_removeAtFront(cc_arraylist *list)
 			/* update cursor */
 			properties->cursor = properties->front;
 			properties->cursor_index = 0;
-			result = properties->cursor_index;
 			free(removenode);
+			result = properties->cursor_index;
 		}
 	}
 	return result;
@@ -339,8 +339,8 @@ int cc_arraylist_removeAtBack(cc_arraylist *list)
 			/* update cursor */
 			properties->cursor = properties->back;
 			properties->cursor_index = properties->length -1;
-			result = properties->cursor_index;
 			free(removenode);
+			result = properties->cursor_index;
 		}
 	}
 	return result;
@@ -370,8 +370,8 @@ int cc_arraylist_removeAtCursor(cc_arraylist *list)
 			}
 			/* update cursor */
 			properties->cursor = removenode->next;
-			result = properties->cursor_index;
 			free(removenode);
+			result = properties->cursor_index;
 		}
 	}
 	return result;
@@ -381,7 +381,7 @@ int cc_arraylist_removeAt(cc_arraylist *list, int index)
 {
 	int result = -1;
 	
-	if (cc_arraylist_setCursor(list, index) >= 0) {
+	if (cc_arraylist_setCursorAt(list, index) >= 0) {
 		result = cc_arraylist_removeAtCursor(list);
 	}
 	return result;
@@ -391,7 +391,7 @@ int cc_arraylist_removeDynamicAt(cc_arraylist *list, int index)
 {
 	int result = -1;
 	
-	if (cc_arraylist_setCursor(list, index) >= 0) {
+	if (cc_arraylist_setCursorAt(list, index) >= 0) {
 		result = cc_arraylist_removeAtCursor(list);
 	} else if (index >= 0) {
 		result = cc_arraylist_removeAtBack(list);
@@ -448,7 +448,7 @@ cc_object *cc_arraylist_getAtCursor(cc_arraylist *list)
 
 cc_object *cc_arraylist_getAt(cc_arraylist *list, int index)
 {
-	cc_arraylist_setCursor(list, index);
+	cc_arraylist_setCursorAt(list, index);
 	return cc_arraylist_getAtCursor(list);
 }
 

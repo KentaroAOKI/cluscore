@@ -135,7 +135,7 @@ void cc_hashtable_set(cc_hashtable *table, char *key, cc_object *object)
 		properties = table->properties;
 		hashvalue = cc_hashtable_calchashvalue(table, key);
 		node = properties->table[hashvalue];
-		for (cc_arraylist_setCursor(node, 0)
+		for (cc_arraylist_setCursorAt(node, 0)
 				;(leaf_object = cc_arraylist_getAtCursor(node)) != NULL
 				;cc_arraylist_nextCursor(node))
 		{
