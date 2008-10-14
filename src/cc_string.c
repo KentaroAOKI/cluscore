@@ -59,6 +59,7 @@ cc_string *cc_string_new(char *string) {
 	cc_string_properties *string_properties = cc_string_properties_new(string);
 	object = cc_object_new(&g_cc_string_object_id, string_properties, cc_string_properties_dispose);
 	object->tocstring = (void *)cc_string_tocstring;
+	object->compare = (void *)cc_string_compare;
 	return (object);
 }
 
