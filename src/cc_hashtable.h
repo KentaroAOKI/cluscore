@@ -6,20 +6,6 @@
 
 extern int g_cc_hashtable_object_id;
 typedef cc_object cc_hashtable;
-typedef struct cc_hashtable_properties cc_hashtable_properties;
-typedef struct cc_hashtable_node cc_hashtable_node;
-
-struct cc_hashtable_node {
-	char *key;
-	cc_object *object;
-};
-
-struct cc_hashtable_properties
-{
-	int size;
-	cc_arraylist **table;
-	int count;
-};
 
 cc_hashtable *cc_hashtable_new(int size);
 void cc_hashtable_dispose(cc_hashtable *table);

@@ -4,15 +4,31 @@
  */
 
 #include "cc_hashtable.h"
+#include "cc_string.h"
+#include "cc_container.h"
 #include <stdlib.h>
 #include <string.h>
 
-/* private */
+typedef struct cc_hashtable_properties cc_hashtable_properties;
+typedef struct cc_hashtable_node cc_hashtable_node;
+
+struct cc_hashtable_node {
+	char *key;
+	cc_object *object;
+};
+
+struct cc_hashtable_properties
+{
+	int size;
+	cc_arraylist **table;
+	int count;
+};
+
 cc_hashtable_properties *cc_hashtable_properties_new(int size);
 void cc_hashtable_properties_dispose(cc_hashtable_properties *properties);
 cc_hashtable_node *cc_hashtable_node_new(char *key, cc_object *object);
 void cc_hashtable_node_dispose(cc_hashtable_node *node);
-unsigned int cc_hashtable_calchashvalue(cc_hashtable *table, char *key);
+unsigned int cc_hashtable_getHash(cc_hashtable *table, char *key);
 
 int g_cc_hashtable_object_id;
 
@@ -64,6 +80,21 @@ void cc_hashtable_properties_dispose(cc_hashtable_properties *properties)
 	return;
 }
 
+cc_hashtable *cc_hashtable_new(int size)
+{
+	cc_hashtable *object = NULL;
+	cc_hashtable_properties *properties = cc_hashtable_properties_new(size);
+	object = cc_object_new(&g_cc_hashtable_object_id, properties, cc_hashtable_properties_dispose);
+	object->tocstring = (void *)cc_hashtable_tocstring;
+	return (object);
+}
+
+void cc_hashtable_dispose(cc_hashtable *hash)
+{
+	cc_object_release(hash);
+	return;
+}
+
 cc_hashtable_node *cc_hashtable_node_new(char *key, cc_object *object)
 {
 	cc_hashtable_node *node;
@@ -85,18 +116,57 @@ void cc_hashtable_node_dispose(cc_hashtable_node *node)
 	}
 }
 
-cc_hashtable *cc_hashtable_new(int size)
+char *cc_hashtable_node_tocstring(cc_hashtable_node *node)
 {
-	cc_hashtable *object = NULL;
-	cc_hashtable_properties *properties = cc_hashtable_properties_new(size);
-	object = cc_object_new(&g_cc_hashtable_object_id, properties, cc_hashtable_properties_dispose);
-	object->tocstring = (void *)cc_hashtable_tocstring;
-	return (object);
+	cc_string *string_base;
+	cc_string *string_close;
+	cc_string *string_key;
+	cc_string *string_object;
+	char *cstring;
+	char *result = NULL;
+	
+	if (node != NULL) {
+		string_base = cc_string_new("[");
+		string_close = cc_string_new("]");
+		string_key = cc_string_new(node->key);
+		cstring = node->object->tocstring(node->object);
+		string_object = cc_string_new(cstring);
+		free(cstring);
+		cc_string_catenate(string_base, string_key);
+		cc_string_catenate(string_base, string_close);
+		cc_string_catenate(string_base, string_object);
+		result = string_base->tocstring(string_base);
+		cc_string_dispose(string_base);
+		cc_string_dispose(string_close);
+		cc_string_dispose(string_key);
+		cc_string_dispose(string_object);
+	}
+	return result;
 }
 
-void cc_hashtable_dispose(cc_hashtable *hash)
+int cc_hashtable_node_compare(cc_hashtable_node *node1, cc_hashtable_node *node2)
 {
-	cc_object_release(hash);
+	int result = -1;
+	if (node1 != NULL && node2 != NULL) {
+		result = strcmp(node1->key, node2->key);
+	}
+	return result;
+}
+
+cc_container *cc_hashtable_node_container_new(char *key, cc_object *object)
+{
+	cc_container *container;
+	cc_hashtable_node *node;
+	node = cc_hashtable_node_new(key, object);
+	container = cc_container_new(node, cc_hashtable_node_dispose);
+	cc_container_setCompare(container, (void *)cc_hashtable_node_compare);
+	cc_container_setTocstring(container, (void *)cc_hashtable_node_tocstring);
+	return container;
+}
+
+void cc_hashtable_node_container_dispose(cc_container *container)
+{
+	cc_container_dispose(container);
 	return;
 }
 
