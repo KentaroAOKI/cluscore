@@ -67,6 +67,23 @@ int cc_arraylist_getLength(cc_arraylist *list)
 	return result;
 }
 
+int cc_arraylist_setCursorAtFront(cc_arraylist *list)
+{
+	return cc_arraylist_setCursorAt(list, 0);
+}
+
+int cc_arraylist_setCursorAtBack(cc_arraylist *list)
+{
+	int result = -1;
+	cc_arraylist_properties *properties;
+	if (list != NULL && list->properties != NULL)
+	{
+		properties = list->properties;
+		result = cc_arraylist_setCursorAt(list, properties->length - 1);
+	}
+	return result;
+}
+
 int cc_arraylist_setCursorAt(cc_arraylist *list, int index)
 {
 	cc_arraylist_properties *properties;
@@ -120,7 +137,7 @@ int cc_arraylist_setCursorAt(cc_arraylist *list, int index)
 	return count;
 }
 
-int cc_arraylist_previousCursor(cc_arraylist *list)
+int cc_arraylist_setCursorAtPrevious(cc_arraylist *list)
 {
 	cc_arraylist_properties *properties;
 	int result = -1;
@@ -136,7 +153,7 @@ int cc_arraylist_previousCursor(cc_arraylist *list)
 	return result;
 }
 
-int cc_arraylist_nextCursor(cc_arraylist *list)
+int cc_arraylist_setCursorAtNext(cc_arraylist *list)
 {
 	cc_arraylist_properties *properties;
 	int result = -1;
@@ -381,7 +398,8 @@ int cc_arraylist_removeAt(cc_arraylist *list, int index)
 {
 	int result = -1;
 	
-	if (cc_arraylist_setCursorAt(list, index) >= 0) {
+	if (cc_arraylist_setCursorAt(list, index) >= 0)
+	{
 		result = cc_arraylist_removeAtCursor(list);
 	}
 	return result;
@@ -391,11 +409,16 @@ int cc_arraylist_removeDynamicAt(cc_arraylist *list, int index)
 {
 	int result = -1;
 	
-	if (cc_arraylist_setCursorAt(list, index) >= 0) {
+	if (cc_arraylist_setCursorAt(list, index) >= 0)
+	{
 		result = cc_arraylist_removeAtCursor(list);
-	} else if (index >= 0) {
+	}
+	else if (index >= 0)
+	{
 		result = cc_arraylist_removeAtBack(list);
-	} else if (index < 0) {
+	}
+	else if (index < 0)
+	{
 		result = cc_arraylist_removeAtFront(list);
 	}
 	return result;
@@ -406,9 +429,11 @@ cc_object *cc_arraylist_getAtFront(cc_arraylist *list)
 	cc_arraylist_properties *properties;
 	cc_object *result_object = NULL;
 
-	if (list != NULL && list->properties != NULL) {
+	if (list != NULL && list->properties != NULL)
+	{
 		properties = list->properties;
-		if (properties->front != NULL) {
+		if (properties->front != NULL)
+		{
 			result_object = properties->front->object;
 			cc_object_grab(result_object);
 		}
@@ -421,9 +446,11 @@ cc_object *cc_arraylist_getAtBack(cc_arraylist *list)
 	cc_arraylist_properties *properties;
 	cc_object *result_object = NULL;
 
-	if (list != NULL && list->properties != NULL) {
+	if (list != NULL && list->properties != NULL)
+	{
 		properties = list->properties;
-		if (properties->back != NULL) {
+		if (properties->back != NULL)
+		{
 			result_object = properties->back->object;
 			cc_object_grab(result_object);
 		}
@@ -436,9 +463,11 @@ cc_object *cc_arraylist_getAtCursor(cc_arraylist *list)
 	cc_arraylist_properties *properties;
 	cc_object *result_object = NULL;
 
-	if (list != NULL && list->properties != NULL) {
+	if (list != NULL && list->properties != NULL)
+	{
 		properties = list->properties;
-		if (properties->cursor != NULL) {
+		if (properties->cursor != NULL)
+		{
 			result_object = properties->cursor->object;
 			cc_object_grab(result_object);
 		}
@@ -450,6 +479,64 @@ cc_object *cc_arraylist_getAt(cc_arraylist *list, int index)
 {
 	cc_arraylist_setCursorAt(list, index);
 	return cc_arraylist_getAtCursor(list);
+}
+
+int cc_arraylist_findForwardFromFront(cc_arraylist *list, cc_object *object)
+{
+	int result = -1;
+	int index;
+	cc_object *cursorobject;
+	
+	index = cc_arraylist_setCursorAtFront(list);
+	if (index >= 0)
+	{
+		do {
+			cursorobject = cc_arraylist_getAtCursor(list);
+			if (cc_object_equalsType(cursorobject, object) == 0
+					&& object->compare(cursorobject) == 0) {
+				result = index;
+				break;
+			}
+			cc_object_release(cursorobject);
+			cursorobject = NULL;
+			index ++;
+		} while (cc_arraylist_setCursorAtNext(list) >= 0);
+		if (cursorobject != NULL)
+		{
+			cc_object_release(cursorobject);
+			cursorobject = NULL;
+		}
+	}
+	return result;
+}
+
+int cc_arraylist_findBackwardFromBack(cc_arraylist *list, cc_object *object)
+{
+	int result = -1;
+	int index;
+	cc_object *cursorobject;
+
+	index = cc_arraylist_setCursorAtBack(list);
+	if (index >= 0)
+	{
+		do {
+			cursorobject = cc_arraylist_getAtCursor(list);
+			if (cc_object_equalsType(cursorobject, object) == 0
+					&& object->compare(cursorobject) == 0) {
+				result = index;
+				break;
+			}
+			cc_object_release(cursorobject);
+			cursorobject = NULL;
+			index --;
+		} while (cc_arraylist_setCursorAtPrevious(list) >= 0);
+		if (cursorobject != NULL)
+		{
+			cc_object_release(cursorobject);
+			cursorobject = NULL;
+		}
+	}
+	return result;
 }
 
 char *cc_arraylist_tocstring(cc_arraylist *object)
@@ -493,6 +580,8 @@ char *cc_arraylist_tocstring(cc_arraylist *object)
 				cstring[cstring_length] = 0;
 				free(object_cstring);
 			}
+		} else {
+			cstring = strdup("");
 		}
 	}
 	return(cstring);

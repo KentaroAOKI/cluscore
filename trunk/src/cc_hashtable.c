@@ -100,7 +100,7 @@ void cc_hashtable_dispose(cc_hashtable *hash)
 	return;
 }
 
-unsigned int cc_hashtable_calchashvalue(cc_hashtable *table, char *key)
+unsigned int cc_hashtable_getHash(cc_hashtable *table, char *key)
 {
 	cc_hashtable_properties *properties;
 	unsigned int hashvalue = 0;
@@ -133,11 +133,11 @@ void cc_hashtable_set(cc_hashtable *table, char *key, cc_object *object)
 	if (table != NULL && key != NULL)
 	{
 		properties = table->properties;
-		hashvalue = cc_hashtable_calchashvalue(table, key);
+		hashvalue = cc_hashtable_getHash(table, key);
 		node = properties->table[hashvalue];
 		for (cc_arraylist_setCursorAt(node, 0)
 				;(leaf_object = cc_arraylist_getAtCursor(node)) != NULL
-				;cc_arraylist_nextCursor(node))
+				;cc_arraylist_setCursorAtNext(node))
 		{
 			leaf_node = (cc_hashtable_node *)leaf_object->properties;
 			if (strcmp(key, leaf_node->key) == 0)
