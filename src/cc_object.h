@@ -26,5 +26,7 @@ void cc_object_dispose(cc_object *object);
 void cc_object_release(cc_object *object);
 void cc_object_grab(cc_object *object);
 char *cc_object_get_properties(cc_object *object);
+void cc_object_replace(cc_object *replaced_object, cc_object *object);
+int cc_object_equalsType(cc_object *object1, cc_object *object2);
 
 #endif

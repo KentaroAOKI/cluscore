@@ -19,11 +19,14 @@ static const int cc_string_add_index_size = 1;
  */
 cc_string_properties *cc_string_properties_new(char *string) {
 	cc_string_properties *properties;
+	int length;
 	properties = malloc(sizeof(cc_string_properties));
 	if (properties != NULL) {
 		if (string != NULL) {
-			properties->string = strdup(string);
-			properties->length = strlen(string);
+			length = strlen(string);
+			properties->string = malloc(length + 1);
+			memcpy(properties->string, string, length + 1);
+			properties->length = length;
 		} else {
 			properties->string = NULL;
 			properties->length = 0;
