@@ -70,7 +70,7 @@ void cc_hashtable_properties_dispose(cc_hashtable_properties *properties)
 		/* disposes tables */
 		if (properties->table != NULL) {
 			for (index = 0; index < properties->size; index ++) {
-				cc_arraylist_dispose(properties->table[index]);
+				cc_arraylist_release(properties->table[index]);
 			}
 			free(properties->table);
 		}
@@ -89,7 +89,7 @@ cc_hashtable *cc_hashtable_new(int size)
 	return (object);
 }
 
-void cc_hashtable_dispose(cc_hashtable *hash)
+void cc_hashtable_release(cc_hashtable *hash)
 {
 	cc_object_release(hash);
 	return;
@@ -99,9 +99,13 @@ cc_hashtable_node *cc_hashtable_node_new(char *key, cc_object *object)
 {
 	cc_hashtable_node *node;
 	node = malloc(sizeof(cc_hashtable_node));
-	if (node != NULL) {
+	if (node != NULL)
+	{
 		node->key = strdup(key);
-		cc_object_grab(object);
+		if (object != NULL)
+		{
+			cc_object_grab(object);
+		}
 		node->object = object;
 	}
 	return node;
@@ -109,11 +113,30 @@ cc_hashtable_node *cc_hashtable_node_new(char *key, cc_object *object)
 
 void cc_hashtable_node_dispose(cc_hashtable_node *node)
 {
-	if (node != NULL) {
+	if (node != NULL)
+	{
 		free(node->key);
-		cc_object_release(node->object);
+		if (node->object != NULL)
+		{
+			cc_object_release(node->object);
+		}
 		free(node);
 	}
+}
+
+cc_object *cc_hashtable_node_getObject(cc_hashtable_node *node)
+{
+	cc_object *object = NULL;
+	
+	if (node != NULL)
+	{
+		object = node->object;
+		if (object != NULL)
+		{
+			cc_object_grab(object);
+		}
+	}
+	return object;
 }
 
 char *cc_hashtable_node_tocstring(cc_hashtable_node *node)
@@ -136,10 +159,10 @@ char *cc_hashtable_node_tocstring(cc_hashtable_node *node)
 		cc_string_catenate(string_base, string_close);
 		cc_string_catenate(string_base, string_object);
 		result = string_base->tocstring(string_base);
-		cc_string_dispose(string_base);
-		cc_string_dispose(string_close);
-		cc_string_dispose(string_key);
-		cc_string_dispose(string_object);
+		cc_string_release(string_base);
+		cc_string_release(string_close);
+		cc_string_release(string_key);
+		cc_string_release(string_object);
 	}
 	return result;
 }
@@ -166,8 +189,18 @@ cc_container *cc_hashtable_node_container_new(char *key, cc_object *object)
 
 void cc_hashtable_node_container_dispose(cc_container *container)
 {
-	cc_container_dispose(container);
+	cc_container_release(container);
 	return;
+}
+
+cc_object *cc_hashtable_node_container_getObject(cc_container *container)
+{
+	cc_hashtable_node *node;
+	cc_object *object;
+
+	node = cc_container_getrefBuffer(container);
+	object = cc_hashtable_node_getObject(node);
+	return object;
 }
 
 unsigned int cc_hashtable_getHash(cc_hashtable *table, char *key)
@@ -196,27 +229,29 @@ void cc_hashtable_set(cc_hashtable *table, char *key, cc_object *object)
 {
 	cc_hashtable_properties *properties;
 	cc_arraylist *node;
-	cc_object *leaf_object;
-	cc_hashtable_node *leaf_node;
+	cc_container *leaf;
+	int leafindex;
 	unsigned int hashvalue;
-
+	
 	if (table != NULL && key != NULL)
 	{
 		properties = table->properties;
+		
 		hashvalue = cc_hashtable_getHash(table, key);
 		node = properties->table[hashvalue];
-		for (cc_arraylist_setCursorAt(node, 0)
-				;(leaf_object = cc_arraylist_getAtCursor(node)) != NULL
-				;cc_arraylist_setCursorAtNext(node))
+
+		leaf = cc_hashtable_node_container_new(key, object);
+		leafindex = cc_arraylist_findForwardFromFront(node, leaf);
+		if (leafindex < 0)
 		{
-			leaf_node = (cc_hashtable_node *)leaf_object->properties;
-			if (strcmp(key, leaf_node->key) == 0)
-			{
-				cc_arraylist_removeAtCursor(node);
-				break;
-			}
+			cc_arraylist_addAtFront(node, leaf);
 		}
-		
+		else
+		{
+			cc_arraylist_removeAt(node, leafindex);
+			cc_arraylist_addAtFront(node, leaf);
+		}
+		cc_hashtable_node_container_dispose(leaf);
 	}
 	return;
 }
@@ -224,6 +259,30 @@ void cc_hashtable_set(cc_hashtable *table, char *key, cc_object *object)
 cc_object *cc_hashtable_get(cc_hashtable *table, char *key)
 {
 	cc_object *result_object = NULL;
+	cc_hashtable_properties *properties;
+	cc_arraylist *node;
+	cc_container *leaf;
+	cc_container *leaf_result;
+	int leafindex;
+	unsigned int hashvalue;
+	
+	if (table != NULL && key != NULL)
+	{
+		properties = table->properties;
+		
+		hashvalue = cc_hashtable_getHash(table, key);
+		node = properties->table[hashvalue];
+
+		leaf = cc_hashtable_node_container_new(key, NULL);
+		leafindex = cc_arraylist_findForwardFromFront(node, leaf);
+		if (leafindex >= 0)
+		{
+			leaf_result = cc_arraylist_getAtCursor(node);
+			result_object = cc_hashtable_node_container_getObject(leaf_result);
+			cc_hashtable_node_container_dispose(leaf_result);
+		}
+		cc_hashtable_node_container_dispose(leaf);
+	}
 	return result_object;
 }
 
@@ -233,10 +292,28 @@ int cc_hashtable_exist(cc_hashtable *table, char *key)
 	return result;
 }
 
-char *cc_hashtable_tocstring(cc_hashtable *object)
+char *cc_hashtable_tocstring(cc_hashtable *table)
 {
+	cc_hashtable_properties *properties;
+	cc_string *result_string;
+	cc_string *string;
+	int index;
 	char *cstring;
-	cstring = strdup("");
-	return(cstring);
+	
+	properties = table->properties;
+	result_string = cc_string_new("");
+	for (index = 0; index < properties->size; index ++) {
+		cstring = properties->table[index]->tocstring(properties->table[index]);
+		string = cc_string_new(cstring);
+		cc_string_catenate(result_string, string);
+		cc_string_release(string);
+		string = cc_string_new("\n");
+		cc_string_catenate(result_string, string);
+		cc_string_release(string);
+		free(cstring);
+	}
+	cstring = result_string->tocstring(result_string);
+	cc_string_release(result_string);
+	return cstring;
 }
 

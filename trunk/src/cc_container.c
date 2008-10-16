@@ -26,6 +26,7 @@ cc_container_properties *cc_container_properties_new(void *buffer, void (*cb_fre
 	if (properties != NULL)
 	{
 		memset(properties, 0, sizeof(cc_container_properties));
+		properties->buffer = buffer;
 		properties->cb_free = cb_free_buffer;
 	}
 	return properties;
@@ -35,7 +36,10 @@ void cc_container_properties_dispose(cc_container_properties *properties)
 {
 	if (properties != NULL)
 	{
-		properties->cb_free(properties->buffer);
+		if (properties->cb_free != NULL)
+		{
+			properties->cb_free(properties->buffer);
+		}
 		free(properties);
 	}
 	return;
@@ -51,10 +55,23 @@ cc_container *cc_container_new(void *buffer, void (*cb_free_buffer))
 	return (object);
 }
 
-void cc_container_dispose(cc_container *container)
+void cc_container_release(cc_container *container)
 {
 	cc_object_release(container);
 	return;
+}
+
+void *cc_container_getrefBuffer(cc_container *container)
+{
+	void *result = NULL;
+	cc_container_properties *properties;
+
+	if (container != NULL)
+	{
+		properties = container->properties;
+		result = properties->buffer;
+	}
+	return result;
 }
 
 void cc_container_setTocstring(cc_container *container, char *(*tocstring))

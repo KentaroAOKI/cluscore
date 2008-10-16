@@ -29,7 +29,7 @@ struct cc_arraylist_properties
 };
 
 cc_arraylist *cc_arraylist_new(void);
-void cc_arraylist_dispose(cc_arraylist *list);
+void cc_arraylist_release(cc_arraylist *list);
 int cc_arraylist_getLength(cc_arraylist *list);
 int cc_arraylist_setCursorAtFront(cc_arraylist *list);
 int cc_arraylist_setCursorAtBack(cc_arraylist *list);

@@ -21,7 +21,7 @@ struct cc_string_properties {
 };
 
 cc_string *cc_string_new(char *string);
-void cc_string_dispose(cc_string *string);
+void cc_string_release(cc_string *string);
 char *cc_string_tocstring(cc_string *string);
 int cc_string_compare(cc_string *string1, cc_string *string2);
 int cc_string_length(cc_string *string);
