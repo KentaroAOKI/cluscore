@@ -49,7 +49,7 @@ cc_arraylist *cc_arraylist_new(void)
 	return (object);
 }
 
-void cc_arraylist_dispose(cc_arraylist *list)
+void cc_arraylist_release(cc_arraylist *list)
 {
 	cc_object_release(list);
 	return;
@@ -569,16 +569,19 @@ char *cc_arraylist_tocstring(cc_arraylist *object)
 					continue;
 				}
 				object_cstring = node->object->tocstring(node->object);
-				object_cstring_length = strlen(object_cstring);
-				if (cstring_alloc_size <= (cstring_length + object_cstring_length))
+				if (object_cstring != NULL)
 				{
-					cstring_alloc_size = cstring_length + object_cstring_length + add_alloc_size;
-					cstring = realloc(cstring, cstring_alloc_size);
+					object_cstring_length = strlen(object_cstring);
+					if (cstring_alloc_size <= (cstring_length + object_cstring_length))
+					{
+						cstring_alloc_size = cstring_length + object_cstring_length + add_alloc_size;
+						cstring = realloc(cstring, cstring_alloc_size);
+					}
+					memcpy(cstring + cstring_length, object_cstring, object_cstring_length);
+					cstring_length = cstring_length + object_cstring_length;
+					cstring[cstring_length] = 0;
+					free(object_cstring);
 				}
-				memcpy(cstring + cstring_length, object_cstring, object_cstring_length);
-				cstring_length = cstring_length + object_cstring_length;
-				cstring[cstring_length] = 0;
-				free(object_cstring);
 			}
 		} else {
 			cstring = strdup("");

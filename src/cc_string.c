@@ -46,7 +46,7 @@ void cc_string_properties_dispose(cc_string_properties *properties) {
 			free(properties->string);
 		}
 		if (properties->nextstrings != NULL) {
-			cc_arraylist_dispose(properties->nextstrings);
+			cc_arraylist_release(properties->nextstrings);
 		}
 		free(properties);
 	}
@@ -69,7 +69,7 @@ cc_string *cc_string_new(char *string) {
 /** Destructs a cc_string object.
  * @param string a reference pointer of the cc_string object.
  */
-void cc_string_dispose(cc_string *string) {
+void cc_string_release(cc_string *string) {
 	if (string != NULL && check_object_id(string, string)) {
 		cc_object_release(string);
 	}
@@ -99,7 +99,7 @@ void cc_string_catenate(cc_string *base_string, cc_object *string) {
 			properties = object_string->properties;
 			cc_arraylist_addAtBack(base_properties->nextstrings, object_string);
 			base_properties->nextlength = base_properties->nextlength + properties->length + properties->nextlength;
-			cc_string_dispose(object_string);
+			cc_string_release(object_string);
 			free(object_cstring);
 		}
 	}
@@ -206,7 +206,7 @@ void cc_string_replase(cc_string *string, char *target_regex, cc_object *replase
 			check_string[pmatch[0].rm_so] = 0;
 			work_string = cc_string_new(check_string);
 			cc_string_catenate(string, work_string);
-			cc_string_dispose(work_string);
+			cc_string_release(work_string);
 			/* catenates replase_string. */
 			cc_string_catenate(string, replase_string);
 			/* changes a status of string. */
@@ -217,7 +217,7 @@ void cc_string_replase(cc_string *string, char *target_regex, cc_object *replase
 		/* catenates last string. */
 		work_string = cc_string_new(check_string);
 		cc_string_catenate(string, work_string);
-		cc_string_dispose(work_string);
+		cc_string_release(work_string);
 
 		free(build_string);
 		regfree(&preg);
@@ -236,7 +236,7 @@ void cc_string_replase_cstring(cc_string *string, char *target_regex, char *repl
 	if (string != NULL && check_object_id(string, string)) {
 		replase_string = cc_string_new(replase_cstring);
 		cc_string_replase(string, target_regex, replase_string);
-		cc_string_dispose(replase_string);
+		cc_string_release(replase_string);
 	}
 	return;
 }
