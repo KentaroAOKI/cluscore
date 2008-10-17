@@ -13,7 +13,7 @@
 	void *repleced_object;\
 	void (*cb_dispose_properties)(void *properties);\
 	char *(*tocstring)(void *object);\
-	char *(*compare)(void *object);
+	int (*compare)(void *object1, void *object2);
 
 typedef struct cc_object_s {
 	CC_OBJECT_PROPERTIES

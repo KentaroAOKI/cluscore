@@ -241,16 +241,18 @@ void cc_hashtable_set(cc_hashtable *table, char *key, cc_object *object)
 		node = properties->table[hashvalue];
 
 		leaf = cc_hashtable_node_container_new(key, object);
-		leafindex = cc_arraylist_findForwardFromFront(node, leaf);
+		
+		leafindex = cc_arraylist_findWithSort(node, leaf);
 		if (leafindex < 0)
 		{
-			cc_arraylist_addAtFront(node, leaf);
+			cc_arraylist_addWithSort(node, leaf);
 		}
 		else
 		{
 			cc_arraylist_removeAt(node, leafindex);
-			cc_arraylist_addAtFront(node, leaf);
+			cc_arraylist_addWithSort(node, leaf);
 		}
+		
 		cc_hashtable_node_container_dispose(leaf);
 	}
 	return;
@@ -274,7 +276,8 @@ cc_object *cc_hashtable_get(cc_hashtable *table, char *key)
 		node = properties->table[hashvalue];
 
 		leaf = cc_hashtable_node_container_new(key, NULL);
-		leafindex = cc_arraylist_findForwardFromFront(node, leaf);
+
+		leafindex = cc_arraylist_findWithSort(node, leaf);
 		if (leafindex >= 0)
 		{
 			leaf_result = cc_arraylist_getAtCursor(node);
@@ -288,7 +291,7 @@ cc_object *cc_hashtable_get(cc_hashtable *table, char *key)
 
 int cc_hashtable_exist(cc_hashtable *table, char *key)
 {
-	int result;
+	int result = 0;
 	return result;
 }
 

@@ -9,6 +9,8 @@
 
 int g_cc_arraylist_object_id;
 
+int cc_arraylist_subSort(cc_arraylist *list, cc_object *insertobject, int *contain, int *insert);
+
 cc_arraylist_properties *cc_arraylist_properties_new(void)
 {
 	cc_arraylist_properties *properties;
@@ -307,6 +309,17 @@ int cc_arraylist_addDynamicAt(cc_arraylist *list, cc_object *insertobject, int i
 	return result;
 }
 
+int cc_arraylist_addWithSort(cc_arraylist *list, cc_object *insertobject)
+{
+	int result;
+	int index;
+	result = cc_arraylist_subSort(list, insertobject, NULL, &index);
+	if (result == 0) {
+		cc_arraylist_addDynamicAt(list, insertobject, index);
+	}
+	return result;
+}
+
 int cc_arraylist_removeAtFront(cc_arraylist *list)
 {
 	cc_arraylist_properties *properties;
@@ -493,7 +506,7 @@ int cc_arraylist_findForwardFromFront(cc_arraylist *list, cc_object *object)
 		do {
 			cursorobject = cc_arraylist_getAtCursor(list);
 			if (cc_object_equalsType(cursorobject, object) == 0
-					&& object->compare(cursorobject) == 0) {
+					&& object->compare(object, cursorobject) == 0) {
 				result = index;
 				break;
 			}
@@ -522,7 +535,7 @@ int cc_arraylist_findBackwardFromBack(cc_arraylist *list, cc_object *object)
 		do {
 			cursorobject = cc_arraylist_getAtCursor(list);
 			if (cc_object_equalsType(cursorobject, object) == 0
-					&& object->compare(cursorobject) == 0) {
+					&& object->compare(object, cursorobject) == 0) {
 				result = index;
 				break;
 			}
@@ -535,6 +548,17 @@ int cc_arraylist_findBackwardFromBack(cc_arraylist *list, cc_object *object)
 			cc_object_release(cursorobject);
 			cursorobject = NULL;
 		}
+	}
+	return result;
+}
+
+int cc_arraylist_findWithSort(cc_arraylist *list, cc_object *insertobject)
+{
+	int result;
+	int index;
+	result = cc_arraylist_subSort(list, insertobject, &index, NULL);
+	if (result == 0) {
+		result = index;
 	}
 	return result;
 }
@@ -588,5 +612,94 @@ char *cc_arraylist_tocstring(cc_arraylist *object)
 		}
 	}
 	return(cstring);
+}
+
+
+
+int cc_arraylist_subSort(cc_arraylist *list, cc_object *insertobject, int *contain, int *insert)
+{
+	cc_arraylist_properties *properties;
+	cc_object *currentobject;
+	int compareresult;
+	int result = -1;
+	int scope_front;
+	int scope_center;
+	int scope_back;
+	
+	if (list != NULL)
+	{
+		if (contain != NULL) {
+			*contain = -1;
+		}
+		if (insert != NULL) {
+			*insert = -1;
+		}
+		properties = list->properties;
+		scope_front = 0;
+		scope_back = properties->length - 1;
+		while (1)
+		{
+			scope_center = scope_front + (int)((scope_back - scope_front) / 2);
+			compareresult = 0;
+			if (scope_front < scope_back)
+			{
+				currentobject = cc_arraylist_getAt(list, scope_center);	
+				compareresult = insertobject->compare(insertobject, currentobject);
+				cc_object_release(currentobject);
+				if (compareresult > 0)
+				{
+					scope_front = scope_center + 1;
+					continue;
+				}
+				else if (compareresult < 0)
+				{
+					scope_back = scope_center;
+					continue;
+				}
+				else
+				{
+					if (contain != NULL) {
+						*contain = scope_center;
+					}
+					if (insert != NULL) {
+						*insert = scope_center;
+					}
+					break;
+				}
+			}
+			else if (scope_front == scope_back)
+			{
+				currentobject = cc_arraylist_getAt(list, scope_center);
+				compareresult = insertobject->compare(insertobject, currentobject);
+				cc_object_release(currentobject);
+				if (compareresult > 0) {
+					if (insert != NULL) {
+						*insert = scope_center + 1;
+					}
+				} else if (compareresult < 0) {
+					if (insert != NULL) {
+						*insert = scope_center;
+					}
+				} else {
+					if (contain != NULL) {
+						*contain = scope_center;
+					}
+					if (insert != NULL) {
+						*insert = scope_center;
+					}
+				}
+				break;
+			}
+			else
+			{
+				if (insert != NULL) {
+					*insert = 0;
+				}
+				break;
+			}
+		}
+		result = 0;
+	}
+	return result;
 }
 
