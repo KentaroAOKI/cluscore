@@ -12,7 +12,8 @@ typedef cc_object cc_arraylist;
 typedef struct cc_arraylist_properties cc_arraylist_properties;
 typedef struct cc_arraylist_node cc_arraylist_node;
 
-struct cc_arraylist_node {
+struct cc_arraylist_node
+{
 	cc_object *object;
 	cc_arraylist_properties *parent;
 	cc_arraylist_node *previous;
@@ -40,7 +41,8 @@ int cc_arraylist_addAtFront(cc_arraylist *list, cc_object *addobject);
 int cc_arraylist_addAtBack(cc_arraylist *list, cc_object *addobject);
 int cc_arraylist_addAtCursor(cc_arraylist *list, cc_object *insertobject);
 int cc_arraylist_addAt(cc_arraylist *list, cc_object *insertobject, int index);
-int cc_arraylist_addDynamicAt(cc_arraylist *list, cc_object *insertobject, int index);
+int cc_arraylist_addDynamicAt(cc_arraylist *list, cc_object *insertobject,
+		int index);
 int cc_arraylist_addWithSort(cc_arraylist *list, cc_object *insertobject);
 int cc_arraylist_removeAtFront(cc_arraylist *list);
 int cc_arraylist_removeAtBack(cc_arraylist *list);
