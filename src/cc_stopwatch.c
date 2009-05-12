@@ -29,10 +29,12 @@ int g_cc_stopwatch_object_id;
 cc_stopwatch_properties *cc_stopwatch_properties_new(void)
 {
 	cc_stopwatch_properties *properties = NULL;
+
 	/* creates cc_stopwatch_properties */
 	properties = malloc(sizeof(cc_stopwatch_properties));
-	if (properties != NULL) {
-		memset (properties, 0, sizeof(cc_stopwatch_properties));
+	if (properties != NULL)
+	{
+		memset(properties, 0, sizeof(cc_stopwatch_properties));
 		properties->status = CC_STOPWATCH_STATUS_RESET;
 	}
 	return properties;
@@ -40,7 +42,8 @@ cc_stopwatch_properties *cc_stopwatch_properties_new(void)
 
 void cc_stopwatch_properties_dispose(cc_stopwatch_properties *properties)
 {
-	if (properties != NULL) {
+	if (properties != NULL)
+	{
 		/* disposes cc_stopwatch_properties */
 		free(properties);
 	}
@@ -50,10 +53,12 @@ void cc_stopwatch_properties_dispose(cc_stopwatch_properties *properties)
 cc_stopwatch *cc_stopwatch_new(void)
 {
 	cc_stopwatch *object = NULL;
+
 	cc_stopwatch_properties *properties = cc_stopwatch_properties_new();
-	object = cc_object_new(&g_cc_stopwatch_object_id, properties, cc_stopwatch_properties_dispose);
-	object->tocstring = (void *)cc_stopwatch_tocstring;
-	object->compare= (void *)cc_stopwatch_compare;
+	object = cc_object_new(&g_cc_stopwatch_object_id, properties,
+			cc_stopwatch_properties_dispose);
+	object->tocstring = (void *) cc_stopwatch_tocstring;
+	object->compare = (void *) cc_stopwatch_compare;
 	return (object);
 }
 
@@ -66,6 +71,7 @@ void cc_stopwatch_release(cc_stopwatch *stopwatch)
 void cc_stopwatch_start(cc_stopwatch *stopwatch)
 {
 	cc_stopwatch_properties *properties;
+
 	if (stopwatch != NULL)
 	{
 		properties = stopwatch->properties;
@@ -85,6 +91,7 @@ void cc_stopwatch_start(cc_stopwatch *stopwatch)
 void cc_stopwatch_stop(cc_stopwatch *stopwatch)
 {
 	cc_stopwatch_properties *properties;
+
 	if (stopwatch != NULL)
 	{
 		properties = stopwatch->properties;
@@ -100,6 +107,7 @@ void cc_stopwatch_stop(cc_stopwatch *stopwatch)
 void cc_stopwatch_reset(cc_stopwatch *stopwatch)
 {
 	cc_stopwatch_properties *properties;
+
 	if (stopwatch != NULL)
 	{
 		properties = stopwatch->properties;
@@ -107,6 +115,7 @@ void cc_stopwatch_reset(cc_stopwatch *stopwatch)
 	}
 	return;
 }
+
 char *cc_stopwatch_tocstring(cc_stopwatch *stopwatch)
 {
 	cc_stopwatch_properties *properties;
@@ -114,19 +123,22 @@ char *cc_stopwatch_tocstring(cc_stopwatch *stopwatch)
 	struct timeval sub_tm;
 	char strbuff[512];
 	char *result = NULL;
-	
-	if (stopwatch != NULL) {
+
+	if (stopwatch != NULL)
+	{
 		properties = stopwatch->properties;
 		switch (properties->status)
 		{
 		case CC_STOPWATCH_STATUS_START:
 			gettimeofday(&present_tm, NULL);
 			timersub(&present_tm, &properties->start_tm, &sub_tm);
-			snprintf(strbuff, sizeof(strbuff), "%d.06%d", (int)sub_tm.tv_sec, (int)sub_tm.tv_usec);
+			snprintf(strbuff, sizeof(strbuff), "%ld.%06ld",
+					(long) sub_tm.tv_sec, (long) sub_tm.tv_usec);
 			break;
 		case CC_STOPWATCH_STATUS_STOP:
 			timersub(&properties->stop_tm, &properties->start_tm, &sub_tm);
-			snprintf(strbuff, sizeof(strbuff), "%d.06%d", (int)sub_tm.tv_sec, (int)sub_tm.tv_usec);
+			snprintf(strbuff, sizeof(strbuff), "%ld.%06ld",
+					(long) sub_tm.tv_sec, (long) sub_tm.tv_usec);
 			break;
 		case CC_STOPWATCH_STATUS_RESET:
 		default:
@@ -142,5 +154,4 @@ int cc_stopwatch_compare(cc_stopwatch *stopwatch1, cc_stopwatch *stopwatch2)
 {
 	return 0;
 }
-
 

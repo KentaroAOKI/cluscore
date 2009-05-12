@@ -19,7 +19,8 @@ struct cc_container_properties
 
 int g_cc_container_object_id;
 
-cc_container_properties *cc_container_properties_new(void *buffer, void (*cb_free_buffer))
+cc_container_properties *cc_container_properties_new(void *buffer,
+		void(*cb_free_buffer))
 {
 	cc_container_properties *properties;
 	properties = malloc(sizeof(cc_container_properties));
@@ -45,13 +46,15 @@ void cc_container_properties_dispose(cc_container_properties *properties)
 	return;
 }
 
-cc_container *cc_container_new(void *buffer, void (*cb_free_buffer))
+cc_container *cc_container_new(void *buffer, void(*cb_free_buffer))
 {
 	cc_container *object = NULL;
-	cc_container_properties *properties = cc_container_properties_new(buffer, cb_free_buffer);
-	object = cc_object_new(&g_cc_container_object_id, properties, cc_container_properties_dispose);
-	object->tocstring = (void *)cc_container_tocstring;
-	object->compare = (void *)cc_container_compare;
+	cc_container_properties *properties = cc_container_properties_new(buffer,
+			cb_free_buffer);
+	object = cc_object_new(&g_cc_container_object_id, properties,
+			cc_container_properties_dispose);
+	object->tocstring = (void *) cc_container_tocstring;
+	object->compare = (void *) cc_container_compare;
 	return (object);
 }
 
@@ -80,18 +83,18 @@ void cc_container_setTocstring(cc_container *container, char *(*tocstring))
 	if (container != NULL)
 	{
 		properties = container->properties;
-		properties->tocstring = (void *)tocstring;
+		properties->tocstring = (void *) tocstring;
 	}
 	return;
 }
 
-void cc_container_setCompare(cc_container *container, int (*compare))
+void cc_container_setCompare(cc_container *container, int(*compare))
 {
 	cc_container_properties *properties;
 	if (container != NULL)
 	{
 		properties = container->properties;
-		properties->compare = (void *)compare;
+		properties->compare = (void *) compare;
 	}
 	return;
 }
@@ -107,7 +110,9 @@ int cc_container_compare(cc_container *container1, cc_container *container2)
 	cc_container_properties *properties1;
 	cc_container_properties *properties2;
 	int result = -1;
-	if (container1 != NULL && container2 != NULL && container1->cb_dispose_properties == container2->cb_dispose_properties)
+	if (container1 != NULL && container2 != NULL
+			&& container1->cb_dispose_properties
+					== container2->cb_dispose_properties)
 	{
 		properties1 = container1->properties;
 		properties2 = container2->properties;
