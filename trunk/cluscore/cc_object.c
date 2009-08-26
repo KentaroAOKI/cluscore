@@ -1,13 +1,38 @@
 /*
- * ClusCore
- * cc_object
+ *  Copyright (c) 2008-2009 Kentaro Aoki
+ *  Copyright (c) 2009 ClusCore
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * The Object Class for ClusCore.
+ * http://www.cluscore.com/
+ *
+ * Author: kentaro.aoki@gmail.com
  */
 
 #include "cc_object.h"
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef DEBUG
+#ifdef LIBCLUSCORE_DEBUG
+pthread_mutex_t  cc_object_debug_alloc_mutex = PTHREAD_MUTEX_INITIALIZER;
 int cc_object_debug_alloc_count = 0;
 #endif
 
@@ -26,8 +51,10 @@ cc_object *cc_object_new(int *id, void *properties,
 		object->repleced_object = NULL;
 		object->cb_dispose_properties = cb_dispose_properties;
 		object->properties = properties;
-#ifdef DEBUG
+#ifdef LIBCLUSCORE_DEBUG
+		pthread_mutex_lock(&cc_object_debug_alloc_mutex);
 		cc_object_debug_alloc_count++;
+		pthread_mutex_unlock(&cc_object_debug_alloc_mutex);
 #endif
 	}
 	return object;
@@ -45,8 +72,10 @@ cc_object *cc_object_new2(int *id, int properties_size,
 		object->repleced_object = NULL;
 		object->cb_dispose_properties = cb_dispose_properties;
 		object->reference_count = 1;
-#ifdef DEBUG
+#ifdef LIBCLUSCORE_DEBUG
+		pthread_mutex_lock(&cc_object_debug_alloc_mutex);
 		cc_object_debug_alloc_count++;
+		pthread_mutex_unlock(&cc_object_debug_alloc_mutex);
 #endif
 	}
 	return object;
@@ -65,8 +94,13 @@ void cc_object_dispose(cc_object *object)
 			cc_object_release(object->repleced_object);
 		}
 		free(object);
-#ifdef DEBUG
+#ifdef LIBCLUSCORE_DEBUG
+		pthread_mutex_lock(&cc_object_debug_alloc_mutex);
 		cc_object_debug_alloc_count--;
+		if ((cc_object_debug_alloc_count%10) == 0) {
+			printf("cc_object is %d.\n", cc_object_debug_alloc_count);
+		}
+		pthread_mutex_unlock(&cc_object_debug_alloc_mutex);
 #endif
 	}
 	return;
@@ -89,13 +123,15 @@ void cc_object_release(cc_object *object)
 	return;
 }
 
-void cc_object_grab(cc_object *object)
+cc_object *cc_object_grab(cc_object *object)
 {
 	if (object != NULL)
 	{
+		pthread_mutex_lock(&object->reference_count_mutex);
 		object->reference_count++;
+		pthread_mutex_unlock(&object->reference_count_mutex);
 	}
-	return;
+	return object;
 }
 
 char *cc_object_get_properties(cc_object *object)

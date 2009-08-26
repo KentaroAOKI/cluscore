@@ -1,7 +1,29 @@
 /*
- * This code is a object for the ClusCore that it is the red-black tree.
- * It has the "cc_redblacktree_" prefix.
+ *  Copyright (c) 2008-2009 Kentaro Aoki
+ *  Copyright (c) 2009 ClusCore
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * The Red Black Tree Class for ClusCore.
  * http://www.cluscore.com/
+ *
+ * Author: kentaro.aoki@gmail.com
  */
 
 #include "cc_redblacktree.h"
@@ -1640,9 +1662,50 @@ cc_object *cc_redblacktree_getWhenLeast(cc_redblacktree *tree)
 	return result_object;
 }
 
+void cc_redblacktree_tocstring_sub(cc_object *callbackobject, cc_object *key, cc_object *object)
+{
+	char *key_cstr;
+	char *obj_cstr;
+	cc_string *key_str;
+	cc_string *obj_str;
+	cc_string *str1;
+	cc_string *str2;
+	cc_string *str3;
+
+	str1 = cc_string_new("<ReadBlackTree key=\"");
+	str2 = cc_string_new("\">\n");
+	str3 = cc_string_new("</ReadBlackTree>\n");
+
+	key_cstr = key->tocstring(key);
+	obj_cstr = object->tocstring(object);
+	key_str = cc_string_new(key_cstr);
+	obj_str = cc_string_new(obj_cstr);
+	cc_string_catenate(callbackobject, str1);
+	cc_string_catenate(callbackobject, key_str);
+	cc_string_catenate(callbackobject, str2);
+	cc_string_catenate(callbackobject, obj_str);
+	cc_string_catenate(callbackobject, str3);
+	cc_object_release(key_str);
+	cc_object_release(obj_str);
+	free(key_cstr);
+	free(obj_cstr);
+
+	cc_object_release(str1);
+	cc_object_release(str2);
+	cc_object_release(str3);
+
+	return;
+}
+
 char *cc_redblacktree_tocstring(cc_redblacktree *table)
 {
+	cc_string *str;
 	char *cstring = NULL;
+
+	str = cc_string_new("");
+	cc_redblacktree_traversePreorder(table, str, cc_redblacktree_tocstring_sub);
+	cstring = str->tocstring(str);
+	cc_object_release(str);
 	return cstring;
 }
 

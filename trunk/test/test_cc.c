@@ -1,16 +1,16 @@
 
-#include "../src/cc_hashtable.h"
-#include "../src/cc_arraylist.h"
-#include "../src/cc_redblacktree.h"
-#include "../src/cc_string.h"
-#include "../src/cc_stopwatch.h"
+#include <cluscore/cc_hashtable.h>
+#include <cluscore/cc_arraylist.h>
+#include <cluscore/cc_redblacktree.h>
+#include <cluscore/cc_string.h>
+#include <cluscore/cc_stopwatch.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define MAXCOUNT 1000000
 
-#ifdef DEBUG
-extern int cc_object_debug_alloc_count;
+#ifdef LIBCLUSCORE_DEBUG
+//extern int cc_object_debug_alloc_count;
 #endif
 
 int main()
@@ -29,6 +29,9 @@ int main()
 
 #if 1
 
+#ifdef LIBCLUSCORE_DEBUG
+//	printf("cc_object = %d\n", cc_object_debug_alloc_count);
+#endif
 	stopwatch = cc_stopwatch_new();
 
 	tree = cc_redblacktree_new();
