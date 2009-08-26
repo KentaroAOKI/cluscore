@@ -1,0 +1,52 @@
+# Process this file with automake to produce a makefile for server library.
+
+#AM_LDFLAGS = @LDFLAGS@ $(ON_WIN32LDFLAGS) -module -avoid-version -shared
+
+cluscoreincdir = $(includedir)/cluscore
+cluscoreinc_HEADERS = \
+	cc_object.h\
+	cc_arraylist.h\
+	cc_container.h\
+	cc_integer.h\
+	cc_redblacktree.h\
+	cc_string.h\
+	cc_binarytree.h\
+	cc_hashtable.h\
+	cc_xml.h\
+	cc_stopwatch.h
+install-exec-hook:
+	$(mkinstalldirs) $(DESTDIR)$(cluscoreincdir)
+#EXTRA_DIST = cluscoreversion.h.in
+
+#man_MANS =
+
+lib_LTLIBRARIES = libcluscore.la
+#libcluscore_la_LDFLAGS = -version-info 0:0:0
+#libcluscore_la_LIBADD = @LTLIBOBJS@
+libcluscore_la_SOURCES = \
+	cc_object.h\
+	cc_object.c\
+	cc_arraylist.h\
+	cc_arraylist.c\
+	cc_container.h\
+	cc_container.c\
+	cc_integer.h\
+	cc_integer.c\
+	cc_redblacktree.h\
+	cc_redblacktree.c\
+	cc_string.h\
+	cc_string.c\
+	cc_binarytree.h\
+	cc_binarytree.c\
+	cc_hashtable.h\
+	cc_hashtable.c\
+	cc_xml.h\
+	cc_xml.c\
+	cc_stopwatch.h\
+	cc_stopwatch.c
+
+INCLUDES =\
+	-I$(top_srcdir)/include\
+	-I/usr/include/libxml2
+
+        

@@ -1,6 +1,29 @@
 /*
- * ClusCore
- * cc_string
+ *  Copyright (c) 2008-2009 Kentaro Aoki
+ *  Copyright (c) 2009 ClusCore
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * The String Class for ClusCore.
+ * http://www.cluscore.com/
+ *
+ * Author: kentaro.aoki@gmail.com
  */
 
 #include "cc_string.h"
@@ -80,6 +103,34 @@ cc_string_properties *cc_string_properties_new(char *string)
 	}
 	return properties;
 }
+
+cc_string_properties *cc_string_properties_newWithLength(char *string, int length)
+{
+	cc_string_properties *properties;
+	if (string == NULL)
+	{
+		length = 0;
+	}
+	properties = malloc(sizeof(cc_string_properties) + length);
+	if (properties != NULL)
+	{
+		if (string != NULL)
+		{
+			memcpy(properties->string, string, length);
+			properties->string[length] = 0;
+			properties->length = length;
+		}
+		else
+		{
+			properties->string[0] = 0;
+			properties->length = 0;
+		}
+		properties->nextstrings = NULL;
+		properties->nextlength = 0;
+	}
+	return properties;
+}
+
 inline void cc_string_properties_initialize(cc_string_properties *properties,
 		char *string, int length)
 {
@@ -151,6 +202,17 @@ cc_string *cc_string_new(char *string)
 	object->get_hashcode = (void *) cc_string_get_hashcode;
 	return (object);
 }
+cc_string *cc_string_newWithLength(char *string, int length)
+{
+	cc_string *object = NULL;
+	cc_string_properties *string_properties = cc_string_properties_newWithLength(string, length);
+	object = cc_object_new(&g_cc_string_object_id, string_properties,
+			cc_string_properties_dispose);
+	object->tocstring = (void *) cc_string_tocstring;
+	object->compare = (void *) cc_string_compare;
+	object->get_hashcode = (void *) cc_string_get_hashcode;
+	return (object);
+}
 #else if
 cc_string *cc_string_new(char *string)
 {
@@ -196,7 +258,7 @@ void cc_string_catenate(cc_string *base_string, cc_object *string)
 {
 	cc_string_properties *base_properties;
 	cc_string_properties *properties;
-	if (base_string != NULL && cc_object_check_id(base_string, string) && string != NULL)
+	if (base_string != NULL && string != NULL && cc_object_check_id(base_string, string))
 	{
 		base_properties = base_string->properties;
 		if (base_properties->nextstrings == NULL)
@@ -256,7 +318,7 @@ char *cc_string_tocstring(cc_string *string)
 				build_length += properties->length;
 			}
 
-			if ((cc_arraylist_properties *) properties->nextlength > 0)
+			if ((cc_arraylist_properties *)properties->nextlength > 0)
 			{
 				tmpcstring = cc_arraylist_tocstring(properties->nextstrings);
 				memcpy(&cstring[build_length], tmpcstring,
@@ -399,7 +461,7 @@ void cc_string_replase(cc_string *string, char *target_regex,
 		build_string_length = cc_string_length(string);
 		/* dispose properties of cc_string. and create it. */
 		cc_string_properties_dispose(string->properties);
-		//		string->properties = cc_string_properties_new("");
+		string->properties = cc_string_properties_new("");
 		/* do replace */
 		check_string = build_string;
 		check_string_length = build_string_length;

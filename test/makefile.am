@@ -1,0 +1,16 @@
+noinst_PROGRAMS =\
+	test_cc
+
+test_cc_SOURCES =\
+	test_cc.c
+	
+test_cc_LDADD =\
+	-lxml2\
+	$(top_srcdir)/cluscore/libcluscore.la
+
+#test_LDFLAGS =\
+#	-L/usr/lib\
+#	-L/usr/lib64
+
+INCLUDES =\
+	-I$(top_srcdir)/cluscore
