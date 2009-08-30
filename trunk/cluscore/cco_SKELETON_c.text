@@ -1,0 +1,93 @@
+/*
+ *  Copyright (c) 2008-2009 Kentaro Aoki
+ *  Copyright (c) 2009 ClusCore
+ *
+ *  http://www.cluscore.com/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * The @CCOSKELETONLITTLENAME@ Class for ClusCore.
+ *
+ * Author:
+ */
+
+#include "@CCOSKELETONLITTLENAME@.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+cco_defineClass(@CCOSKELETONLITTLENAMEONLY@);
+
+@CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_baseNew(int size)
+{
+	@CCOSKELETONLITTLENAME@ *o;
+	do {
+		if (size < sizeof(@CCOSKELETONLITTLENAME@))
+		{
+			break;
+		}
+		o = (@CCOSKELETONLITTLENAME@ *)@CCOSKELETONLITTLESUPERNAME@_baseNew(size);
+		if (o == NULL)
+		{
+			break;
+		}
+		cco_setClass(o, @CCOSKELETONLITTLENAMEONLY@);
+		@CCOSKELETONLITTLENAME@_baseInitialize(o);
+	} while (0);
+	return o;
+}
+
+void @CCOSKELETONLITTLENAME@_baseRelease(void *o)
+{
+	@CCOSKELETONLITTLENAME@_baseFinalize(o);
+	@CCOSKELETONLITTLESUPERNAME@_baseRelease(o);
+}
+
+void @CCOSKELETONLITTLENAME@_baseInitialize(@CCOSKELETONLITTLENAME@ *o)
+{
+	o->baseRelease = &@CCOSKELETONLITTLENAME@_baseRelease;
+	o->getCstring = &@CCOSKELETONLITTLENAME@_getCstring;
+	o->@CCOSKELETONLITTLENAME@_func = &@CCOSKELETONLITTLENAME@_func;
+	return;
+}
+
+void @CCOSKELETONLITTLENAME@_baseFinalize(@CCOSKELETONLITTLENAME@ *o)
+{
+	return;
+}
+
+@CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_new()
+{
+	return @CCOSKELETONLITTLENAME@_baseNew(sizeof(@CCOSKELETONLITTLENAME@));
+}
+
+void @CCOSKELETONLITTLENAME@_release(void *o)
+{
+	cco_release(o);
+}
+
+char *@CCOSKELETONLITTLENAME@_getCstring(void *o)
+{
+	return strdup("@CCOSKELETONLITTLENAME@");
+}
+
+int @CCOSKELETONLITTLENAME@_func(void *obj)
+{
+	return 0;
+}
