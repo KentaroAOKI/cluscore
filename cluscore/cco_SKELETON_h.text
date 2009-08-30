@@ -2,6 +2,8 @@
  *  Copyright (c) 2008-2009 Kentaro Aoki
  *  Copyright (c) 2009 ClusCore
  *
+ *  http://www.cluscore.com/
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -20,44 +22,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The Object Class for ClusCore.
- * http://www.cluscore.com/
+ * The @CCOSKELETONLITTLENAME@ Class for ClusCore.
  *
- * Author: kentaro.aoki@gmail.com
+ * Author:
  */
 
-#ifndef CC_OBJECT_H
-#define CC_OBJECT_H
+#ifndef @CCOSKELETONBIGNAME@_H_
+#define @CCOSKELETONBIGNAME@_H_
 
-#include <pthread.h>
+#include "@CCOSKELETONLITTLESUPERNAME@.h"
 
-#define CC_OBJECT_PROPERTIES \
-	int *id;\
-	int reference_count;\
-	void *repleced_object;\
-	pthread_mutex_t reference_count_mutex;\
-	void (*cb_dispose_properties)(void *properties);\
-	char *(*tocstring)(void *object);\
-	int (*compare)(void *object1, void *object2);\
-	int (*get_hashcode)(void *object, int salt);\
-	void *properties;
+#define @CCOSKELETONBIGNAME@_PROPERTIES \
+	int @CCOSKELETONLITTLENAME@;\
+	int (*@CCOSKELETONLITTLENAME@_func)(void *@CCOSKELETONLITTLENAME@);
 
-typedef struct cc_object_s
-{
-	CC_OBJECT_PROPERTIES
-} cc_object;
+typedef struct @CCOSKELETONLITTLENAME@ @CCOSKELETONLITTLENAME@;
 
-#define cc_object_check_id(objectname, typename) objectname->id == &g_cc_##typename##_object_id
+struct @CCOSKELETONLITTLENAME@ {
+@CCOSKELETONSUPERPROPERTIES@	@CCOSKELETONBIGNAME@_PROPERTIES
+};
 
-cc_object *cc_object_new(int *id, void *properties,
-	void(*cb_dispose_properties));
-cc_object *cc_object_new2(int *id, int properties_size,
-	void(*cb_dispose_properties));
-void cc_object_dispose(cc_object *object);
-void cc_object_release(cc_object *object);
-cc_object *cc_object_grab(cc_object *object);
-char *cc_object_get_properties(cc_object *object);
-void cc_object_replace(cc_object *replaced_object, cc_object *object);
-int cc_object_equalsType(cc_object *object1, cc_object *object2);
+@CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_baseNew(int size);
+void @CCOSKELETONLITTLENAME@_baseRelease(void *cco);
+void @CCOSKELETONLITTLENAME@_baseInitialize(@CCOSKELETONLITTLENAME@ *cco);
+void @CCOSKELETONLITTLENAME@_baseFinalize(@CCOSKELETONLITTLENAME@ *cco);
+@CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_new();
+void @CCOSKELETONLITTLENAME@_release(void *cco);
+char *@CCOSKELETONLITTLENAME@_getCstring(void *o);
+int @CCOSKELETONLITTLENAME@_func(void *@CCOSKELETONLITTLENAME@);
 
-#endif
+#endif /* @CCOSKELETONBIGNAME@_H_ */
+
+/*
+@CCOSKELETONHIDESUPERPROPERTIES@CCOPERTIES:@CCOSKELETONBIGNAME@_PROPERTIES
+*/

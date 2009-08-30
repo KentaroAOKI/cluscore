@@ -25,6 +25,7 @@
  * Author: kentaro.aoki@gmail.com
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <libxml/xmlreader.h>
