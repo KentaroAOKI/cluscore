@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2008-2009 Kentaro Aoki
+ *  Copyright (c) 2009 ClusCore
  *
  *  http://www.cluscore.com/
  *
@@ -21,53 +22,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The ClusCore.
+ * The cco_vData Class for ClusCore.
  *
- * Author: Kentaro Aoki
+ * Author:
  */
 
-#ifndef CCO_H_
-#define CCO_H_
+#include "cco_vData.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-#if HAVE_PTHREAD_H
-#include <pthread.h>
-#endif /* HAVE_PTHREAD_H */
+cco_defineClass(vData);
 
-#if HAVE_PTHREAD_H
-#define CCO_PROPERTIES \
-	int *baseId;\
-	int baseReferencecount;\
-	pthread_mutex_t baseReferencecountmutex;\
-	void (*baseRelease)(void *o);\
-	char *(*getCstring)(void *o);\
-	int (*compare)(void *o1, void *o2);
-#else
-#define CCO_PROPERTIES \
-	int *baseId;\
-	int baseReferencecount;\
-	void (*baseRelease)(void *o);
-#endif /* HAVE_PTHREAD_H */
+cco_vData *cco_vData_baseNew(int size)
+{
+	cco_vData *o;
+	do {
+		if (size < sizeof(cco_vData))
+		{
+			break;
+		}
+		o = (cco_vData *)cco_v_baseNew(size);
+		if (o == NULL)
+		{
+			break;
+		}
+		cco_setClass(o, vData);
+		cco_vData_baseInitialize(o);
+	} while (0);
+	return o;
+}
 
-typedef struct cco cco;
-struct cco {
-	CCO_PROPERTIES
-};
+void cco_vData_baseRelease(void *o)
+{
+	cco_vData_baseFinalize(o);
+	cco_v_baseRelease(o);
+}
 
-#define cco_defineClass(NAME) int g_cco_##NAME##_baseId;
-#define cco_setClass(CCO, NAME) ((cco*)CCO)->baseId = &g_cco_##NAME##_baseId;
-#define cco_compareClass(CCO, NAME) (((cco*)CCO)->baseId == &g_cco_##NAME##_baseId)
+void cco_vData_baseInitialize(cco_vData *o)
+{
+	o->baseRelease = &cco_vData_baseRelease;
+	o->cco_vData_func = &cco_vData_func;
+	return;
+}
 
-cco *cco_baseNew(int size);
-void cco_baseRelease(void *o);
-void cco_baseInitialize(cco *o);
-void cco_baseFinalize(cco *o);
-int cco_compare(void *o1, void *o2);
-cco *cco_new();
-void cco_release(void *o);
-void cco_grab(void *o);
+void cco_vData_baseFinalize(cco_vData *o)
+{
+	return;
+}
 
-#endif /* CCO_H_ */
+cco_vData *cco_vData_new()
+{
+	return cco_vData_baseNew(sizeof(cco_vData));
+}
 
-/*
-CCOPERTIES:CCO_PROPERTIES
-*/
+void cco_vData_release(void *o)
+{
+	cco_release(o);
+}
+
+int cco_vData_func(void *obj)
+{
+	return 0;
+}

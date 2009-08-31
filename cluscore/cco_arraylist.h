@@ -23,7 +23,7 @@
  *
  * The cco_arraylist Class for ClusCore.
  *
- * Author:
+ * Author: Kentaro Aoki
  */
 
 #ifndef CCO_ARRAYLIST_H_
@@ -60,8 +60,27 @@ void cco_arraylist_baseInitialize(cco_arraylist *cco);
 void cco_arraylist_baseFinalize(cco_arraylist *cco);
 cco_arraylist *cco_arraylist_new();
 void cco_arraylist_release(void *cco);
-char *cco_arraylist_getCstring(void *o);
-int cco_arraylist_func(void *cco_arraylist);
+
+int cco_arraylist_length(cco_arraylist *cco_arraylist);
+int cco_arraylist_setCursorAtFront(cco_arraylist *cco_arraylist);
+int cco_arraylist_setCursorAtBack(cco_arraylist *cco_arraylist);
+int cco_arraylist_setCursorAt(cco_arraylist *cco_arraylist, int index);
+int cco_arraylist_setCursorAtPrevious(cco_arraylist *cco_arraylist);
+int cco_arraylist_setCursorAtNext(cco_arraylist *cco_arraylist);
+int cco_arraylist_addAtFront(cco_arraylist *cco_arraylist, void *cco);
+int cco_arraylist_addAtBack(cco_arraylist *cco_arraylist, void *cco);
+int cco_arraylist_addAtCursor(cco_arraylist *cco_arraylist, void *cco);
+int cco_arraylist_addAt(cco_arraylist *cco_arraylist, void *cco, int index);
+int cco_arraylist_addDynamicAt(cco_arraylist *cco_arraylist, void *cco, int index);
+int cco_arraylist_removeAtFront(cco_arraylist *cco_arraylist);
+int cco_arraylist_removeAtBack(cco_arraylist *cco_arraylist);
+int cco_arraylist_removeAtCursor(cco_arraylist *cco_arraylist);
+int cco_arraylist_removeAt(cco_arraylist *cco_arraylist, int index);
+int cco_arraylist_removeDynamicAt(cco_arraylist *cco_arraylist, int index);
+cco *cco_arraylist_getAtFront(cco_arraylist *cco_arraylist);
+cco *cco_arraylist_getAtBack(cco_arraylist *cco_arraylist);
+cco *cco_arraylist_getAtCursor(cco_arraylist *cco_arraylist);
+cco *cco_arraylist_getAt(cco_arraylist *cco_arraylist, int index);
 
 #endif /* CCO_ARRAYLIST_H_ */
 
