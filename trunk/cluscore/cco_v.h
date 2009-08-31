@@ -1,5 +1,6 @@
 /*
  *  Copyright (c) 2008-2009 Kentaro Aoki
+ *  Copyright (c) 2009 ClusCore
  *
  *  http://www.cluscore.com/
  *
@@ -21,53 +22,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The ClusCore.
+ * The cco_v Class for ClusCore.
  *
- * Author: Kentaro Aoki
+ * Author:
  */
 
-#ifndef CCO_H_
-#define CCO_H_
+#ifndef CCO_V_H_
+#define CCO_V_H_
 
-#if HAVE_PTHREAD_H
-#include <pthread.h>
-#endif /* HAVE_PTHREAD_H */
+#include "cco.h"
 
-#if HAVE_PTHREAD_H
-#define CCO_PROPERTIES \
-	int *baseId;\
-	int baseReferencecount;\
-	pthread_mutex_t baseReferencecountmutex;\
-	void (*baseRelease)(void *o);\
-	char *(*getCstring)(void *o);\
-	int (*compare)(void *o1, void *o2);
-#else
-#define CCO_PROPERTIES \
-	int *baseId;\
-	int baseReferencecount;\
-	void (*baseRelease)(void *o);
-#endif /* HAVE_PTHREAD_H */
+#define CCO_V_PROPERTIES \
+	int (*v_compere)(void *cco_v1, void *cco_v2);\
+	int (*v_hash)(void *cco_v, int salt);\
+	char *(*v_getCstring)(void *cco_v);
 
-typedef struct cco cco;
-struct cco {
+typedef struct cco_v cco_v;
+
+struct cco_v {
 	CCO_PROPERTIES
+	CCO_V_PROPERTIES
 };
 
-#define cco_defineClass(NAME) int g_cco_##NAME##_baseId;
-#define cco_setClass(CCO, NAME) ((cco*)CCO)->baseId = &g_cco_##NAME##_baseId;
-#define cco_compareClass(CCO, NAME) (((cco*)CCO)->baseId == &g_cco_##NAME##_baseId)
+cco_v *cco_v_baseNew(int size);
+void cco_v_baseRelease(void *cco);
+void cco_v_baseInitialize(cco_v *cco);
+void cco_v_baseFinalize(cco_v *cco);
+cco_v *cco_v_new();
+void cco_v_release(void *cco);
 
-cco *cco_baseNew(int size);
-void cco_baseRelease(void *o);
-void cco_baseInitialize(cco *o);
-void cco_baseFinalize(cco *o);
-int cco_compare(void *o1, void *o2);
-cco *cco_new();
-void cco_release(void *o);
-void cco_grab(void *o);
+char *cco_v_getCstring(void *o);
+int cco_v_hash(void *obj, int salt);
+int cco_v_compere(void *obj1, void *obj2);
 
-#endif /* CCO_H_ */
+#endif /* CCO_V_H_ */
 
 /*
 CCOPERTIES:CCO_PROPERTIES
+CCOPERTIES:CCO_V_PROPERTIES
 */

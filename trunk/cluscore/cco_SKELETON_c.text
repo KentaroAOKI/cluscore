@@ -36,7 +36,7 @@ cco_defineClass(@CCOSKELETONLITTLENAMEONLY@);
 
 @CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_baseNew(int size)
 {
-	@CCOSKELETONLITTLENAME@ *o;
+	@CCOSKELETONLITTLENAME@ *o = NULL;
 	do {
 		if (size < sizeof(@CCOSKELETONLITTLENAME@))
 		{
@@ -62,7 +62,6 @@ void @CCOSKELETONLITTLENAME@_baseRelease(void *o)
 void @CCOSKELETONLITTLENAME@_baseInitialize(@CCOSKELETONLITTLENAME@ *o)
 {
 	o->baseRelease = &@CCOSKELETONLITTLENAME@_baseRelease;
-	o->getCstring = &@CCOSKELETONLITTLENAME@_getCstring;
 	o->@CCOSKELETONLITTLENAME@_func = &@CCOSKELETONLITTLENAME@_func;
 	return;
 }
@@ -80,11 +79,6 @@ void @CCOSKELETONLITTLENAME@_baseFinalize(@CCOSKELETONLITTLENAME@ *o)
 void @CCOSKELETONLITTLENAME@_release(void *o)
 {
 	cco_release(o);
-}
-
-char *@CCOSKELETONLITTLENAME@_getCstring(void *o)
-{
-	return strdup("@CCOSKELETONLITTLENAME@");
 }
 
 int @CCOSKELETONLITTLENAME@_func(void *obj)

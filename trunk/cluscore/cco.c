@@ -29,7 +29,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "cco.h"
+
+#define LIBCLUSCORE_DEBUG 1
+
 
 #ifdef LIBCLUSCORE_DEBUG
 pthread_mutex_t  cco_baseDebugallocmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -78,24 +82,12 @@ void cco_baseInitialize(cco *o)
 	pthread_mutex_init(&o->baseReferencecountmutex, NULL);
 #endif
 	o->baseRelease = &cco_baseRelease;
-	o->getCstring = &cco_baseGetCstring;
-	o->compare = &cco_compare;
 	return;
 }
 
 void cco_baseFinalize(cco *o)
 {
 	return;
-}
-
-char *cco_baseGetCstring(void *o)
-{
-	return strdup("cco");
-}
-
-int cco_compare(void *o1, void *o2)
-{
-	return o1 - o2;
 }
 
 cco *cco_new()
@@ -138,4 +130,11 @@ void cco_grab(void *o)
 #endif
 	}
 	return;
+}
+
+void cco_printDaseDebugalloccount()
+{
+#ifdef LIBCLUSCORE_DEBUG
+	printf("cco_baseDebugalloccount:%d\n", cco_baseDebugalloccount);
+#endif
 }
