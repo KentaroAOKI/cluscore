@@ -25,7 +25,6 @@
  * Author: kentaro.aoki@gmail.com
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <libxml/xmlreader.h>
@@ -274,6 +273,29 @@ void cc_xml_read(cc_xml *xml, char *uri)
 	}
 	return;
 }
+void cc_xml_readBuffer(cc_xml *xml, char *buff)
+{
+	xmlDocPtr doc;
+	xmlNodePtr cur;
+
+	do {
+		if (xml == NULL || buff == NULL)
+		{
+			break;
+		}
+		doc = xmlReadMemory(buff, strlen(buff), NULL, NULL, 0);
+		if (doc == NULL)
+		{
+			break;
+		}
+		cur = xmlDocGetRootElement(doc);
+		cc_xml_read_parse_node(xml, cur);
+	} while(0);
+	if (doc != NULL) {
+		xmlFreeDoc(doc);
+	}
+	return;
+}
 #endif
 
 cc_arraylist *cc_xml_getElements_getParsePath(cc_xml *xml, char *path)
@@ -446,6 +468,61 @@ cc_string *cc_xml_getAttribute(cc_xml *xml, char* name)
 	return result_str;
 }
 
+
+void cc_xml_rbtree_attribute_sub(cc_object *callbackobject, cc_object *key, cc_object *object)
+{
+	char *key_cstr;
+	char *obj_cstr;
+	cc_string *key_str;
+	cc_string *obj_str;
+	cc_string *str1;
+	cc_string *str2;
+	cc_string *str3;
+
+	str1 = cc_string_new(" ");
+	str2 = cc_string_new("=\"");
+	str3 = cc_string_new("\"");
+
+	key_cstr = key->tocstring(key);
+	obj_cstr = object->tocstring(object);
+	key_str = cc_string_new(key_cstr);
+	obj_str = cc_string_new(obj_cstr);
+	cc_string_catenate(callbackobject, str1);
+	cc_string_catenate(callbackobject, key_str);
+	cc_string_catenate(callbackobject, str2);
+	cc_string_catenate(callbackobject, obj_str);
+	cc_string_catenate(callbackobject, str3);
+	cc_object_release(key_str);
+	cc_object_release(obj_str);
+	free(key_cstr);
+	free(obj_cstr);
+
+	cc_object_release(str1);
+	cc_object_release(str2);
+	cc_object_release(str3);
+
+	return;
+}
+
+void cc_xml_rbtree_element_sub(cc_object *callbackobject, cc_object *key, cc_object *object)
+{
+	char *obj_cstr;
+	cc_string *obj_str;
+	cc_xml *xml;
+
+	cc_arraylist_setCursorAtFront(object);
+	while(xml = cc_arraylist_getAtCursor(object))
+	{
+		obj_cstr = xml->tocstring(xml);
+		obj_str = cc_string_new(obj_cstr);
+		cc_string_catenate(callbackobject, obj_str);
+		cc_object_release(obj_str);
+		cc_object_release(xml);
+		cc_arraylist_setCursorAtNext(object);
+	}
+	return;
+}
+
 char *cc_xml_tocstring(cc_xml *xml)
 {
 	cc_xml_properties *properties;
@@ -456,32 +533,37 @@ char *cc_xml_tocstring(cc_xml *xml)
 	properties = xml->properties;
 
 	/* element name */
-	result_string = cc_string_new("<xml name=\"");
-	cc_string_catenate(result_string, properties->name);
-	string = cc_string_new("\">\n");
-	cc_string_catenate(result_string, string);
-	cc_object_release(string);
+	result_string = cc_string_new("");
+	if (cc_string_length(properties->name) != 0)
+	{
+		string = cc_string_new("<");
+		cc_string_catenate(result_string, string);
+		cc_object_release(string);
+		cc_string_catenate(result_string, properties->name);
 
-	/* attribute */
-	cstring = properties->attributes->tocstring(properties->attributes);
-	string = cc_string_new(cstring);
-	cc_string_catenate(result_string, string);
-	cc_object_release(string);
-	free(cstring);
+		/* attribute */
+		cc_redblacktree_traversePreorder(properties->attributes, result_string, cc_xml_rbtree_attribute_sub);
 
-	/* content */
-	cc_string_catenate(result_string, properties->data);
+		string = cc_string_new(">");
+		cc_string_catenate(result_string, string);
+		cc_object_release(string);
 
+		/* content */
+		cc_string_catenate(result_string, properties->data);
+	}
 	/* child elements */
-	cstring = properties->elements->tocstring(properties->elements);
-	string = cc_string_new(cstring);
-	cc_string_catenate(result_string, string);
-	cc_object_release(string);
-	free(cstring);
+	cc_redblacktree_traversePreorder(properties->elements, result_string, cc_xml_rbtree_element_sub);
 
-	string = cc_string_new("\n</xml>\n");
-	cc_string_catenate(result_string, string);
-	cc_object_release(string);
+	if (cc_string_length(properties->name) != 0)
+	{
+		string = cc_string_new("</");
+		cc_string_catenate(result_string, string);
+		cc_object_release(string);
+		cc_string_catenate(result_string, properties->name);
+		string = cc_string_new(">\n");
+		cc_string_catenate(result_string, string);
+		cc_object_release(string);
+	}
 
 	cstring = result_string->tocstring(result_string);
 	cc_object_release(result_string);
