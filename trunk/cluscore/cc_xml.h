@@ -50,6 +50,7 @@ cc_xml *cc_xml_new(void);
 void cc_xml_release(cc_xml *list);
 char *cc_xml_tocstring(cc_xml *list);
 void cc_xml_read(cc_xml *xml, char *uri);
+void cc_xml_readBuffer(cc_xml *xml, char *buff);
 cc_arraylist *cc_xml_getElements(cc_xml *xml, char *path);
 cc_xml *cc_xml_getElementAtFront(cc_xml *xml, char *path);
 cc_xml *cc_xml_getElementAtBack(cc_xml *xml, char *path);
