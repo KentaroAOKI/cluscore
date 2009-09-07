@@ -31,7 +31,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-cco_defineClass(arraylist);
+cco_defineClass(cco_arraylist);
 
 cco_arraylist *cco_arraylist_baseNew(int size)
 {
