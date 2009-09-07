@@ -32,7 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-cco_defineClass(@CCOSKELETONLITTLENAMEONLY@);
+cco_defineClass(@CCOSKELETONLITTLENAME@);
 
 @CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_baseNew(int size)
 {

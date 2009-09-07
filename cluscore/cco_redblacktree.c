@@ -24,7 +24,7 @@
  *
  * The cco_redblacktree Class for ClusCore.
  *
- * Author:
+ * Author: Kentaro Aoki
  */
 
 #include "cco_redblacktree.h"
@@ -32,23 +32,33 @@
 #include <string.h>
 #include <stdlib.h>
 
-cco_defineClass(redblacktree);
-cco_redblacktree_node g_cco_redblacktree_node_nil = { NULL, NULL, NULL, NULL, CCO_REDBLACKTREE_COLOR_BLACK, NULL};
+cco_defineClass(cco_redblacktree)
+;
+cco_redblacktree_node g_cco_redblacktree_node_nil =
+{ NULL, NULL, NULL, NULL, CCO_REDBLACKTREE_COLOR_BLACK, NULL};
+
+cco_redblacktree_status cco_redblacktree_insert_collision(cco_redblacktree_node *current_node, cco_redblacktree_node *insert_node);
+cco_redblacktree_status cco_redblacktree_insert_collisionWithReplace(cco_redblacktree_node *cursor_node, cco_redblacktree_node *insert_node);
+cco_redblacktree_status cco_redblacktree_insert_do(cco_redblacktree *tree, cco_v *key, cco *value, cco_redblacktree_status( cb_collision)(cco_redblacktree_node *current_node,
+		cco_redblacktree_node *insert_node));
+void cco_redblacktree_insert_fixup(cco_redblacktree *tree, cco_redblacktree_node *node);
+void cco_redblacktree_delete_fixup(cco_redblacktree *tree, cco_redblacktree_node *node);
 
 cco_redblacktree *cco_redblacktree_baseNew(int size)
 {
 	cco_redblacktree *o = NULL;
-	do {
+	do
+	{
 		if (size < sizeof(cco_redblacktree))
 		{
 			break;
 		}
-		o = (cco_redblacktree *)cco_baseNew(size);
+		o = (cco_redblacktree *) cco_baseNew(size);
 		if (o == NULL)
 		{
 			break;
 		}
-		cco_setClass(o, redblacktree);
+		cco_setClass(o, cco_redblacktree);
 		cco_redblacktree_baseInitialize(o);
 	} while (0);
 	return o;
@@ -144,50 +154,13 @@ cco *cco_redblacktree_node_getObject(cco_redblacktree_node *node)
 	return object;
 }
 
-#if 0
-
 /*
- * Gets a c-stype string of a node.
+ * Swaps nodes of tree.
  */
-char *cc_redblacktree_node_tocstring(cc_redblacktree_node *node)
+void cco_redblacktree_node_swap(cco_redblacktree_node *node1, cco_redblacktree_node *node2)
 {
-	cc_string *string_base;
-	cc_string *string_close;
-	cc_string *string_key;
-	cc_string *string_object;
-	char *cstring;
-	char *result = NULL;
-
-	if (node != NULL)
-	{
-		string_base = cc_string_new("[");
-		string_close = cc_string_new("]");
-		cstring = node->key->tocstring(node->key);
-		string_key = cc_string_new(cstring);
-		free(cstring);
-		cstring = node->object->tocstring(node->object);
-		string_object = cc_string_new(cstring);
-		free(cstring);
-		cc_string_catenate(string_base, string_key);
-		cc_string_catenate(string_base, string_close);
-		cc_string_catenate(string_base, string_object);
-		result = string_base->tocstring(string_base);
-		cc_string_release(string_base);
-		cc_string_release(string_close);
-		cc_string_release(string_key);
-		cc_string_release(string_object);
-	}
-	return result;
-}
-
-/*
- * Swaps a node of tree.
- */
-void cc_redblacktree_node_swap(cc_redblacktree_node *node1,
-		cc_redblacktree_node *node2)
-{
-	cc_object *tmp_key;
-	cc_object *tmp_object;
+	cco_v *tmp_key;
+	cco *tmp_object;
 
 	tmp_key = node1->key;
 	tmp_object = node1->object;
@@ -201,9 +174,9 @@ void cc_redblacktree_node_swap(cc_redblacktree_node *node1,
 /*
  * Gets a reference of maximum-node.
  */
-cc_redblacktree_node *cc_redblacktree_node_maximum(cc_redblacktree_node *node)
+cco_redblacktree_node *cco_redblacktree_node_maximum(cco_redblacktree_node *node)
 {
-	while (node->left_node != &g_cc_redblacktree_node_nil)
+	while (node->left_node != &g_cco_redblacktree_node_nil)
 	{
 		node = node->left_node;
 	}
@@ -213,9 +186,9 @@ cc_redblacktree_node *cc_redblacktree_node_maximum(cc_redblacktree_node *node)
 /*
  * Gets a reference of minimum-node.
  */
-cc_redblacktree_node *cc_redblacktree_node_minimum(cc_redblacktree_node *node)
+cco_redblacktree_node *cco_redblacktree_node_minimum(cco_redblacktree_node *node)
 {
-	while (node->right_node != &g_cc_redblacktree_node_nil)
+	while (node->right_node != &g_cco_redblacktree_node_nil)
 	{
 		node = node->right_node;
 	}
@@ -225,16 +198,15 @@ cc_redblacktree_node *cc_redblacktree_node_minimum(cc_redblacktree_node *node)
 /*
  * Gets a reference of successor-node.
  */
-cc_redblacktree_node *cc_redblacktree_node_successor(cc_redblacktree_node *node)
+cco_redblacktree_node *cco_redblacktree_node_successor(cco_redblacktree_node *node)
 {
-	cc_redblacktree_node *cursor_node;
-	if (node->right_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	if (node->right_node != &g_cco_redblacktree_node_nil)
 	{
-		return cc_redblacktree_node_minimum(node);
+		return cco_redblacktree_node_minimum(node);
 	}
 	cursor_node = node->parent_node;
-	while (cursor_node != &g_cc_redblacktree_node_nil && node
-			== cursor_node->right_node)
+	while (cursor_node != &g_cco_redblacktree_node_nil && node == cursor_node->right_node)
 	{
 		node = cursor_node;
 		cursor_node = cursor_node->parent_node;
@@ -250,14 +222,13 @@ cc_redblacktree_node *cc_redblacktree_node_successor(cc_redblacktree_node *node)
  *  2. Traverse the left subtree.
  *  3. Traverse the right subtree.
  */
-void cc_redblacktree_node_traversePreorder(cc_redblacktree_node *node,
-		void(*cb)(cc_redblacktree_node *node))
+void cco_redblacktree_node_traversePreorder(cco_redblacktree_node *node, void(*cb)(cco_redblacktree_node *node))
 {
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
 		cb(node);
-		cc_redblacktree_node_traversePreorder(node->left_node, cb);
-		cc_redblacktree_node_traversePreorder(node->right_node, cb);
+		cco_redblacktree_node_traversePreorder(node->left_node, cb);
+		cco_redblacktree_node_traversePreorder(node->right_node, cb);
 	}
 	return;
 }
@@ -270,14 +241,13 @@ void cc_redblacktree_node_traversePreorder(cc_redblacktree_node *node,
  * 2. Visit the root.
  * 3. Traverse the right subtree.
  */
-void cc_redblacktree_node_traverseInorder(cc_redblacktree_node *node,
-		void(*cb)(cc_redblacktree_node *node))
+void cco_redblacktree_node_traverseInorder(cco_redblacktree_node *node, void(*cb)(cco_redblacktree_node *node))
 {
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
-		cc_redblacktree_node_traverseInorder(node->left_node, cb);
+		cco_redblacktree_node_traverseInorder(node->left_node, cb);
 		cb(node);
-		cc_redblacktree_node_traverseInorder(node->right_node, cb);
+		cco_redblacktree_node_traverseInorder(node->right_node, cb);
 	}
 	return;
 }
@@ -290,13 +260,12 @@ void cc_redblacktree_node_traverseInorder(cc_redblacktree_node *node,
  * 2. Traverse the right subtree.
  * 3. Visit the root.
  */
-void cc_redblacktree_node_traversePostorder(cc_redblacktree_node *node,
-		void(*cb)(cc_redblacktree_node *node))
+void cco_redblacktree_node_traversePostorder(cco_redblacktree_node *node, void(*cb)(cco_redblacktree_node *node))
 {
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
-		cc_redblacktree_node_traversePostorder(node->left_node, cb);
-		cc_redblacktree_node_traversePostorder(node->right_node, cb);
+		cco_redblacktree_node_traversePostorder(node->left_node, cb);
+		cco_redblacktree_node_traversePostorder(node->right_node, cb);
 		cb(node);
 	}
 	return;
@@ -305,23 +274,20 @@ void cc_redblacktree_node_traversePostorder(cc_redblacktree_node *node,
 /**
  * Rotates a tree in left.
  */
-inline void cc_redblacktree_rotateLeft(cc_redblacktree *tree,
-		cc_redblacktree_node *node)
+inline void cco_redblacktree_rotateLeft(cco_redblacktree *tree, cco_redblacktree_node *node)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 
-	properties = tree->properties;
 	cursor_node = node->right_node;
 	node->right_node = cursor_node->left_node;
-	if (cursor_node->left_node != &g_cc_redblacktree_node_nil)
+	if (cursor_node->left_node != &g_cco_redblacktree_node_nil)
 	{
 		cursor_node->left_node->parent_node = node;
 	}
 	cursor_node->parent_node = node->parent_node;
-	if (node->parent_node == &g_cc_redblacktree_node_nil)
+	if (node->parent_node == &g_cco_redblacktree_node_nil)
 	{
-		properties->root_node = cursor_node;
+		tree->redblacktreeRoot = cursor_node;
 	}
 	else if (node == node->parent_node->left_node)
 	{
@@ -339,23 +305,20 @@ inline void cc_redblacktree_rotateLeft(cc_redblacktree *tree,
 /**
  * Rotates a tree in right.
  */
-inline void cc_redblacktree_rotateRight(cc_redblacktree *tree,
-		cc_redblacktree_node *node)
+inline void cco_redblacktree_rotateRight(cco_redblacktree *tree, cco_redblacktree_node *node)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 
-	properties = tree->properties;
 	cursor_node = node->left_node;
 	node->left_node = cursor_node->right_node;
-	if (cursor_node->right_node != &g_cc_redblacktree_node_nil)
+	if (cursor_node->right_node != &g_cco_redblacktree_node_nil)
 	{
 		cursor_node->right_node->parent_node = node;
 	}
 	cursor_node->parent_node = node->parent_node;
-	if (node->parent_node == &g_cc_redblacktree_node_nil)
+	if (node->parent_node == &g_cco_redblacktree_node_nil)
 	{
-		properties->root_node = cursor_node;
+		tree->redblacktreeRoot = cursor_node;
 	}
 	else if (node == node->parent_node->right_node)
 	{
@@ -371,105 +334,89 @@ inline void cc_redblacktree_rotateRight(cc_redblacktree *tree,
 }
 
 /**
- * Inserts a node to a cc_redblacktree object.
- * @tree a cc_redblecktree object.
- * @key a cc_object of a key.
- * @value a cc_object of a value.
- * @return a cc_redblacktree_status of a result.
- * If it is inserted, A result is CC_REDBLACKTREE_STATUS_INSERTED.
- * If it is replaced and inserted, A result is CC_REDBLACKTREE_STATUS_REPLACED.
- * If it is error, A result is CC_REDBLACKTREE_STATUS_ERROR.
+ * Inserts a node to a cco_redblacktree object.
+ * @tree a cco_redblacktree object.
+ * @key a cco of a key.
+ * @value a cco of a value.
+ * @return a cco_redblacktree_status of a result.
+ * If it is inserted, A result is CCO_REDBLACKTREE_STATUS_INSERTED.
+ * If it is replaced and inserted, A result is CCO_REDBLACKTREE_STATUS_REPLACED.
+ * If it is error, A result is CCO_REDBLACKTREE_STATUS_ERROR.
  */
-cc_redblacktree_status cc_redblacktree_insert(cc_redblacktree *tree,
-		cc_object *key, cc_object *value)
+cco_redblacktree_status cco_redblacktree_insert(cco_redblacktree *tree, cco_v *key, cco *value)
 {
-	return cc_redblacktree_insert_do(tree, key, value,
-			cc_redblacktree_insert_collision);
+	return cco_redblacktree_insert_do(tree, key, value, cco_redblacktree_insert_collision);
 }
 
 /**
- * Inserts a node to a cc_redblacktree object.
- * @tree a cc_redblecktree object.
- * @key a cc_object of a key.
- * @value a cc_object of a value.
- * @return a cc_redblacktree_status of a result.
- * If it is inserted, A result is CC_REDBLACKTREE_STATUS_INSERTED.
- * If it is replaced and inserted, A result is CC_REDBLACKTREE_STATUS_REPLACED.
- * If it is error, A result is CC_REDBLACKTREE_STATUS_ERROR.
+ * Inserts a node to a cco_redblacktree object.
+ * @tree a cco_redblacktree object.
+ * @key a cco of a key.
+ * @value a cco of a value.
+ * @return a cco_redblacktree_status of a result.
+ * If it is inserted, A result is CCO_REDBLACKTREE_STATUS_INSERTED.
+ * If it is replaced and inserted, A result is CCO_REDBLACKTREE_STATUS_REPLACED.
+ * If it is error, A result is CCO_REDBLACKTREE_STATUS_ERROR.
  */
-cc_redblacktree_status cc_redblacktree_insertWithReplace(cc_redblacktree *tree,
-		cc_object *key, cc_object *value)
+cco_redblacktree_status cco_redblacktree_insertWithReplace(cco_redblacktree *tree, cco_v *key, cco *value)
 {
-	return cc_redblacktree_insert_do(tree, key, value,
-			cc_redblacktree_insert_collisionWithReplace);
+	return cco_redblacktree_insert_do(tree, key, value, cco_redblacktree_insert_collisionWithReplace);
 }
 
 /**
- * Inserts a node to a cc_redblacktree object.
- * @tree a cc_redblecktree object.
- * @key a cc_object of a key.
- * @value a cc_object of a value.
- * @return a cc_redblacktree_status of a result.
- * If it is inserted, A result is CC_REDBLACKTREE_STATUS_INSERTED.
- * If it is replaced and inserted, A result is CC_REDBLACKTREE_STATUS_REPLACED.
- * If it is error, A result is CC_REDBLACKTREE_STATUS_ERROR.
+ * Inserts a node to a cco_redblacktree object.
+ * @tree a cco_redblacktree object.
+ * @key a cco of a key.
+ * @value a cco of a value.
+ * @return a cco_redblacktree_status of a result.
+ * If it is inserted, A result is CCO_REDBLACKTREE_STATUS_INSERTED.
+ * If it is replaced and inserted, A result is CCO_REDBLACKTREE_STATUS_REPLACED.
+ * If it is error, A result is CCO_REDBLACKTREE_STATUS_ERROR.
  */
-cc_redblacktree_status cc_redblacktree_insertWithCallback(cc_redblacktree *tree,
-		cc_object *key, cc_object *value,
-		cc_redblacktree_status( cb_collision)(
-				cc_object *input_value,
-				cc_object *target_value))
+cco_redblacktree_status cco_redblacktree_insertWithCallback(cco_redblacktree *tree, cco_v *key, cco *value, cco_redblacktree_status( cb_collision)(cco *input_value, cco *target_value))
 {
-	return cc_redblacktree_insert_do(tree, key, value,
-			cc_redblacktree_insert_collisionWithReplace);
+	return cco_redblacktree_insert_do(tree, key, value, cco_redblacktree_insert_collisionWithReplace);
 }
 
-cc_redblacktree_status cc_redblacktree_insert_collision(
-		cc_redblacktree_node *current_node, cc_redblacktree_node *insert_node)
+cco_redblacktree_status cco_redblacktree_insert_collision(cco_redblacktree_node *current_node, cco_redblacktree_node *insert_node)
 {
-	cc_redblacktree_node_dispose(insert_node);
-	return CC_REDBLACKTREE_STATUS_FAILURE;
+	cco_redblacktree_node_dispose(insert_node);
+	return CCO_REDBLACKTREE_STATUS_FAILURE;
 }
 
-cc_redblacktree_status cc_redblacktree_insert_collisionWithReplace(
-		cc_redblacktree_node *cursor_node, cc_redblacktree_node *insert_node)
+cco_redblacktree_status cco_redblacktree_insert_collisionWithReplace(cco_redblacktree_node *cursor_node, cco_redblacktree_node *insert_node)
 {
 	/* replaces a node to this tree. */
-	cc_redblacktree_node_swap(cursor_node, insert_node);
-	cc_redblacktree_node_dispose(insert_node);
-	return CC_REDBLACKTREE_STATUS_REPLACED;
+	cco_redblacktree_node_swap(cursor_node, insert_node);
+	cco_redblacktree_node_dispose(insert_node);
+	return CCO_REDBLACKTREE_STATUS_REPLACED;
 }
 
-cc_redblacktree_status cc_redblacktree_insert_do(cc_redblacktree *tree,
-		cc_object *key, cc_object *value,
-		cc_redblacktree_status( cb_collision)(
-				cc_redblacktree_node *current_node,
-				cc_redblacktree_node *insert_node))
+cco_redblacktree_status cco_redblacktree_insert_do(cco_redblacktree *tree, cco_v *key, cco *value, cco_redblacktree_status( cb_collision)(cco_redblacktree_node *current_node,
+		cco_redblacktree_node *insert_node))
 {
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_INSERTED;
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *insert_node;
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_node *leaf_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_INSERTED;
+	cco_redblacktree_node *insert_node;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_node *leaf_node;
 	int insert_way = 0;
 
 	do
 	{
 		if (tree == NULL || key == NULL || value == NULL)
 		{
-			result = CC_REDBLACKTREE_STATUS_ERROR;
+			result = CCO_REDBLACKTREE_STATUS_ERROR;
 			break;
 		}
-		properties = tree->properties;
 		/* creates a node to insert an object. */
-		insert_node = cc_redblacktree_node_new(key, value);
+		insert_node = cco_redblacktree_node_new(key, value);
 		/* moves a cursor to leaf. */
-		leaf_node = &g_cc_redblacktree_node_nil;
-		cursor_node = properties->root_node;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		leaf_node = &g_cco_redblacktree_node_nil;
+		cursor_node = tree->redblacktreeRoot;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
 			leaf_node = cursor_node;
-			insert_way = key->compare(key, cursor_node->key);
+			insert_way = key->v_compere(key, cursor_node->key);
 			if (insert_way == 0)
 			{
 				break;
@@ -483,13 +430,13 @@ cc_redblacktree_status cc_redblacktree_insert_do(cc_redblacktree *tree,
 				cursor_node = cursor_node->right_node;
 			}
 		}
-		if (cursor_node == &g_cc_redblacktree_node_nil)
+		if (cursor_node == &g_cco_redblacktree_node_nil)
 		{
 			/* connects a node to this tree. */
 			insert_node->parent_node = leaf_node;
-			if (leaf_node == &g_cc_redblacktree_node_nil)
+			if (leaf_node == &g_cco_redblacktree_node_nil)
 			{
-				properties->root_node = insert_node;
+				tree->redblacktreeRoot = insert_node;
 			}
 			else if (insert_way < 0)
 			{
@@ -500,40 +447,34 @@ cc_redblacktree_status cc_redblacktree_insert_do(cc_redblacktree *tree,
 				leaf_node->right_node = insert_node;
 			}
 			/* fixes up for data structure. */
-			cc_redblacktree_insert_fixup(tree, insert_node);
+			cco_redblacktree_insert_fixup(tree, insert_node);
 		}
 		else
 		{
-			result = (cc_redblacktree_status) cb_collision(cursor_node,
-					insert_node);
+			result = (cco_redblacktree_status) cb_collision(cursor_node, insert_node);
 		}
 	} while (0);
 	return result;
 }
 
 /**
- * Fixes up a tree for the cc_redblacktree_insert.
+ * Fixes up a tree for the cco_redblacktree_insert.
  */
-void cc_redblacktree_insert_fixup(cc_redblacktree *tree,
-		cc_redblacktree_node *node)
+void cco_redblacktree_insert_fixup(cco_redblacktree *tree, cco_redblacktree_node *node)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_z_node = node;
-	cc_redblacktree_node *cursor_y_node;
+	cco_redblacktree_node *cursor_z_node = node;
+	cco_redblacktree_node *cursor_y_node;
 
-	properties = tree->properties;
-	while (cursor_z_node->parent_node->color == CC_REDBLACKTREE_COLOR_RED)
+	while (cursor_z_node->parent_node->color == CCO_REDBLACKTREE_COLOR_RED)
 	{
-		if (cursor_z_node->parent_node
-				== cursor_z_node->parent_node->parent_node->left_node)
+		if (cursor_z_node->parent_node == cursor_z_node->parent_node->parent_node->left_node)
 		{
 			cursor_y_node = cursor_z_node->parent_node->parent_node->right_node;
-			if (cursor_y_node->color == CC_REDBLACKTREE_COLOR_RED)
+			if (cursor_y_node->color == CCO_REDBLACKTREE_COLOR_RED)
 			{
-				cursor_z_node->parent_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_y_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_z_node->parent_node->parent_node->color
-						= CC_REDBLACKTREE_COLOR_RED;
+				cursor_z_node->parent_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_y_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_z_node->parent_node->parent_node->color = CCO_REDBLACKTREE_COLOR_RED;
 				/* updates cursor_z_node */
 				cursor_z_node = cursor_z_node->parent_node->parent_node;
 			}
@@ -544,25 +485,22 @@ void cc_redblacktree_insert_fixup(cc_redblacktree *tree,
 					/* updates cursor_z_node */
 					cursor_z_node = cursor_z_node->parent_node;
 					/* left-rotate cursor_z_node */
-					cc_redblacktree_rotateLeft(tree, cursor_z_node);
+					cco_redblacktree_rotateLeft(tree, cursor_z_node);
 				}
-				cursor_z_node->parent_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_z_node->parent_node->parent_node->color
-						= CC_REDBLACKTREE_COLOR_RED;
+				cursor_z_node->parent_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_z_node->parent_node->parent_node->color = CCO_REDBLACKTREE_COLOR_RED;
 				/* right-rotate cursor_z_node->parent_node->parent_node */
-				cc_redblacktree_rotateRight(tree,
-						cursor_z_node->parent_node->parent_node);
+				cco_redblacktree_rotateRight(tree, cursor_z_node->parent_node->parent_node);
 			}
 		}
 		else
 		{
 			cursor_y_node = cursor_z_node->parent_node->parent_node->left_node;
-			if (cursor_y_node->color == CC_REDBLACKTREE_COLOR_RED)
+			if (cursor_y_node->color == CCO_REDBLACKTREE_COLOR_RED)
 			{
-				cursor_z_node->parent_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_y_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_z_node->parent_node->parent_node->color
-						= CC_REDBLACKTREE_COLOR_RED;
+				cursor_z_node->parent_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_y_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_z_node->parent_node->parent_node->color = CCO_REDBLACKTREE_COLOR_RED;
 				/* updates cursor_z_node */
 				cursor_z_node = cursor_z_node->parent_node->parent_node;
 			}
@@ -573,47 +511,43 @@ void cc_redblacktree_insert_fixup(cc_redblacktree *tree,
 					/* updates cursor_z_node */
 					cursor_z_node = cursor_z_node->parent_node;
 					/* right-rotate cursor_z_node */
-					cc_redblacktree_rotateRight(tree, cursor_z_node);
+					cco_redblacktree_rotateRight(tree, cursor_z_node);
 				}
-				cursor_z_node->parent_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_z_node->parent_node->parent_node->color
-						= CC_REDBLACKTREE_COLOR_RED;
+				cursor_z_node->parent_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_z_node->parent_node->parent_node->color = CCO_REDBLACKTREE_COLOR_RED;
 				/* left-rotate cursor_z_node->parent_node->parent_node */
-				cc_redblacktree_rotateLeft(tree,
-						cursor_z_node->parent_node->parent_node);
+				cco_redblacktree_rotateLeft(tree, cursor_z_node->parent_node->parent_node);
 			}
 		}
 	}
-	properties->root_node->color = CC_REDBLACKTREE_COLOR_BLACK;
+	tree->redblacktreeRoot->color = CCO_REDBLACKTREE_COLOR_BLACK;
 	return;
 }
 
 /**
  * Deletes a node from a tree.
  */
-cc_redblacktree_status cc_redblacktree_delete(cc_redblacktree *tree,
-		cc_object *key)
+cco_redblacktree_status cco_redblacktree_delete(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *delete_node;
-	cc_redblacktree_node *cursor_x_node;
-	cc_redblacktree_node *cursor_y_node;
+	cco_redblacktree_node *delete_node;
+	cco_redblacktree_node *cursor_x_node;
+	cco_redblacktree_node *cursor_y_node;
 	int find_way;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
+
 	do
 	{
 		if (tree == NULL || key == NULL)
 		{
-			result = CC_REDBLACKTREE_STATUS_ERROR;
+			result = CCO_REDBLACKTREE_STATUS_ERROR;
 			break;
 		}
-		properties = tree->properties;
 		/* finds a node to delete it from a tree. */
-		delete_node = &g_cc_redblacktree_node_nil;
-		cursor_y_node = properties->root_node;
-		while (cursor_y_node != &g_cc_redblacktree_node_nil)
+		delete_node = &g_cco_redblacktree_node_nil;
+		cursor_y_node = tree->redblacktreeRoot;
+		while (cursor_y_node != &g_cco_redblacktree_node_nil)
 		{
-			find_way = key->compare(key, cursor_y_node->key);
+			find_way = key->v_compere(key, cursor_y_node->key);
 			if (find_way == 0)
 			{
 				delete_node = cursor_y_node;
@@ -629,21 +563,20 @@ cc_redblacktree_status cc_redblacktree_delete(cc_redblacktree *tree,
 			}
 		}
 		/* deletes a node from a tree. */
-		if (delete_node == &g_cc_redblacktree_node_nil)
+		if (delete_node == &g_cco_redblacktree_node_nil)
 		{
-			result = CC_REDBLACKTREE_STATUS_FAILURE;
+			result = CCO_REDBLACKTREE_STATUS_FAILURE;
 			break;
 		}
-		if (delete_node->left_node == &g_cc_redblacktree_node_nil
-				|| delete_node->right_node == &g_cc_redblacktree_node_nil)
+		if (delete_node->left_node == &g_cco_redblacktree_node_nil || delete_node->right_node == &g_cco_redblacktree_node_nil)
 		{
 			cursor_y_node = delete_node;
 		}
 		else
 		{
-			cursor_y_node = cc_redblacktree_node_successor(delete_node);
+			cursor_y_node = cco_redblacktree_node_successor(delete_node);
 		}
-		if (cursor_y_node->left_node != &g_cc_redblacktree_node_nil)
+		if (cursor_y_node->left_node != &g_cco_redblacktree_node_nil)
 		{
 			cursor_x_node = cursor_y_node->left_node;
 		}
@@ -652,9 +585,9 @@ cc_redblacktree_status cc_redblacktree_delete(cc_redblacktree *tree,
 			cursor_x_node = cursor_y_node->right_node;
 		}
 		cursor_x_node->parent_node = cursor_y_node->parent_node;
-		if (cursor_y_node->parent_node == &g_cc_redblacktree_node_nil)
+		if (cursor_y_node->parent_node == &g_cco_redblacktree_node_nil)
 		{
-			properties->root_node = cursor_x_node;
+			tree->redblacktreeRoot = cursor_x_node;
 		}
 		else
 		{
@@ -669,112 +602,98 @@ cc_redblacktree_status cc_redblacktree_delete(cc_redblacktree *tree,
 		}
 		if (cursor_y_node != delete_node)
 		{
-			cc_redblacktree_node_swap(delete_node, cursor_y_node);
+			cco_redblacktree_node_swap(delete_node, cursor_y_node);
 
 		}
-		if (cursor_y_node->color == CC_REDBLACKTREE_COLOR_BLACK)
+		if (cursor_y_node->color == CCO_REDBLACKTREE_COLOR_BLACK)
 		{
-			cc_redblacktree_delete_fixup(tree, cursor_x_node);
+			cco_redblacktree_delete_fixup(tree, cursor_x_node);
 		}
-		cc_redblacktree_node_dispose(cursor_y_node);
+		cco_redblacktree_node_dispose(cursor_y_node);
 	} while (0);
 	return result;
 }
 
 /**
- * Fixes up a tree for the cc_redblacktree_delete.
+ * Fixes up a tree for the cco_redblacktree_delete.
  */
-void cc_redblacktree_delete_fixup(cc_redblacktree *tree,
-		cc_redblacktree_node *node)
+void cco_redblacktree_delete_fixup(cco_redblacktree *tree, cco_redblacktree_node *node)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_x_node = node;
-	cc_redblacktree_node *cursor_w_node;
+	cco_redblacktree_node *cursor_x_node = node;
+	cco_redblacktree_node *cursor_w_node;
 
-	properties = tree->properties;
-	while (cursor_x_node != properties->root_node && cursor_x_node->color
-			== CC_REDBLACKTREE_COLOR_BLACK)
+	while (cursor_x_node != tree->redblacktreeRoot && cursor_x_node->color == CCO_REDBLACKTREE_COLOR_BLACK)
 	{
 		if (cursor_x_node == cursor_x_node->parent_node->left_node)
 		{
 			cursor_w_node = cursor_x_node->parent_node->right_node;
-			if (cursor_w_node->color == CC_REDBLACKTREE_COLOR_RED)
+			if (cursor_w_node->color == CCO_REDBLACKTREE_COLOR_RED)
 			{
-				cursor_w_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_x_node->parent_node->color = CC_REDBLACKTREE_COLOR_RED;
-				cc_redblacktree_rotateLeft(tree, cursor_x_node->parent_node);
+				cursor_w_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_x_node->parent_node->color = CCO_REDBLACKTREE_COLOR_RED;
+				cco_redblacktree_rotateLeft(tree, cursor_x_node->parent_node);
 				cursor_w_node = cursor_x_node->parent_node->right_node;
 			}
-			if (cursor_w_node->left_node->color == CC_REDBLACKTREE_COLOR_BLACK
-					&& cursor_w_node->right_node->color
-							== CC_REDBLACKTREE_COLOR_BLACK)
+			if (cursor_w_node->left_node->color == CCO_REDBLACKTREE_COLOR_BLACK && cursor_w_node->right_node->color == CCO_REDBLACKTREE_COLOR_BLACK)
 			{
-				cursor_w_node->color = CC_REDBLACKTREE_COLOR_RED;
+				cursor_w_node->color = CCO_REDBLACKTREE_COLOR_RED;
 				cursor_x_node = cursor_x_node->parent_node;
 			}
 			else
 			{
-				if (cursor_w_node->right_node->color
-						== CC_REDBLACKTREE_COLOR_BLACK)
+				if (cursor_w_node->right_node->color == CCO_REDBLACKTREE_COLOR_BLACK)
 				{
-					cursor_w_node->left_node->color
-							= CC_REDBLACKTREE_COLOR_BLACK;
-					cursor_w_node->color = CC_REDBLACKTREE_COLOR_RED;
-					cc_redblacktree_rotateRight(tree, cursor_w_node);
+					cursor_w_node->left_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+					cursor_w_node->color = CCO_REDBLACKTREE_COLOR_RED;
+					cco_redblacktree_rotateRight(tree, cursor_w_node);
 					cursor_w_node = cursor_x_node->parent_node->right_node;
 				}
 				cursor_w_node->color = cursor_x_node->parent_node->color;
-				cursor_x_node->parent_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_w_node->right_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cc_redblacktree_rotateLeft(tree, cursor_x_node->parent_node);
-				cursor_x_node = properties->root_node;
+				cursor_x_node->parent_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_w_node->right_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cco_redblacktree_rotateLeft(tree, cursor_x_node->parent_node);
+				cursor_x_node = tree->redblacktreeRoot;
 			}
 		}
 		else
 		{
 			cursor_w_node = cursor_x_node->parent_node->left_node;
-			if (cursor_w_node->color == CC_REDBLACKTREE_COLOR_RED)
+			if (cursor_w_node->color == CCO_REDBLACKTREE_COLOR_RED)
 			{
-				cursor_w_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_x_node->parent_node->color = CC_REDBLACKTREE_COLOR_RED;
-				cc_redblacktree_rotateRight(tree, cursor_x_node->parent_node);
+				cursor_w_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_x_node->parent_node->color = CCO_REDBLACKTREE_COLOR_RED;
+				cco_redblacktree_rotateRight(tree, cursor_x_node->parent_node);
 				cursor_w_node = cursor_x_node->parent_node->left_node;
 			}
-			if (cursor_w_node->right_node->color == CC_REDBLACKTREE_COLOR_BLACK
-					&& cursor_w_node->left_node->color
-							== CC_REDBLACKTREE_COLOR_BLACK)
+			if (cursor_w_node->right_node->color == CCO_REDBLACKTREE_COLOR_BLACK && cursor_w_node->left_node->color == CCO_REDBLACKTREE_COLOR_BLACK)
 			{
-				cursor_w_node->color = CC_REDBLACKTREE_COLOR_RED;
+				cursor_w_node->color = CCO_REDBLACKTREE_COLOR_RED;
 				cursor_x_node = cursor_x_node->parent_node;
 			}
 			else
 			{
-				if (cursor_w_node->left_node->color
-						== CC_REDBLACKTREE_COLOR_BLACK)
+				if (cursor_w_node->left_node->color == CCO_REDBLACKTREE_COLOR_BLACK)
 				{
-					cursor_w_node->right_node->color
-							= CC_REDBLACKTREE_COLOR_BLACK;
-					cursor_w_node->color = CC_REDBLACKTREE_COLOR_RED;
-					cc_redblacktree_rotateLeft(tree, cursor_w_node);
+					cursor_w_node->right_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+					cursor_w_node->color = CCO_REDBLACKTREE_COLOR_RED;
+					cco_redblacktree_rotateLeft(tree, cursor_w_node);
 					cursor_w_node = cursor_x_node->parent_node->left_node;
 				}
 				cursor_w_node->color = cursor_x_node->parent_node->color;
-				cursor_x_node->parent_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cursor_w_node->left_node->color = CC_REDBLACKTREE_COLOR_BLACK;
-				cc_redblacktree_rotateRight(tree, cursor_x_node->parent_node);
-				cursor_x_node = properties->root_node;
+				cursor_x_node->parent_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cursor_w_node->left_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
+				cco_redblacktree_rotateRight(tree, cursor_x_node->parent_node);
+				cursor_x_node = tree->redblacktreeRoot;
 			}
 		}
 	}
-	cursor_x_node->color = CC_REDBLACKTREE_COLOR_BLACK;
+	cursor_x_node->color = CCO_REDBLACKTREE_COLOR_BLACK;
 	return;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenEqual(cc_redblacktree *tree,
-		cc_object *key)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenEqual(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 	int find_way;
 
 	do
@@ -784,11 +703,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenEqual(cc_redblacktree *tree,
 			cursor_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
-			find_way = key->compare(key, cursor_node->key);
+			find_way = key->v_compere(key, cursor_node->key);
 			if (find_way == 0)
 			{
 				break;
@@ -806,11 +724,9 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenEqual(cc_redblacktree *tree,
 	return cursor_node;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenGreaterEqual(
-		cc_redblacktree *tree, cc_object *key)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenGreaterEqual(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 	int find_way;
 
 	do
@@ -820,11 +736,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenGreaterEqual(
 			cursor_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
-			find_way = key->compare(key, cursor_node->key);
+			find_way = key->v_compere(key, cursor_node->key);
 			if (find_way == 0)
 			{
 				break;
@@ -842,11 +757,9 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenGreaterEqual(
 	return cursor_node;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenGreater(
-		cc_redblacktree *tree, cc_object *key)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenGreater(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 	int find_way;
 
 	do
@@ -856,11 +769,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenGreater(
 			cursor_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
-			find_way = key->compare(key, cursor_node->key);
+			find_way = key->v_compere(key, cursor_node->key);
 			if (find_way == 0)
 			{
 				cursor_node = cursor_node->right_node;
@@ -878,12 +790,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenGreater(
 	return cursor_node;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenGreatest(
-		cc_redblacktree *tree)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenGreatest(cco_redblacktree *tree)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_node *target_node;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_node *target_node;
 
 	do
 	{
@@ -892,10 +802,9 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenGreatest(
 			target_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		target_node = &g_cc_redblacktree_node_nil;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		target_node = &g_cco_redblacktree_node_nil;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
 			target_node = cursor_node;
 			cursor_node = cursor_node->right_node;
@@ -904,11 +813,9 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenGreatest(
 	return target_node;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenLessEqual(
-		cc_redblacktree *tree, cc_object *key)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenLessEqual(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 	int find_way;
 
 	do
@@ -918,11 +825,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenLessEqual(
 			cursor_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
-			find_way = key->compare(key, cursor_node->key);
+			find_way = key->v_compere(key, cursor_node->key);
 			if (find_way == 0)
 			{
 				break;
@@ -940,11 +846,9 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenLessEqual(
 	return cursor_node;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenLess(cc_redblacktree *tree,
-		cc_object *key)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenLess(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 	int find_way;
 
 	do
@@ -954,11 +858,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenLess(cc_redblacktree *tree,
 			cursor_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
-			find_way = key->compare(key, cursor_node->key);
+			find_way = key->v_compere(key, cursor_node->key);
 			if (find_way == 0)
 			{
 				cursor_node = cursor_node->left_node;
@@ -976,11 +879,10 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenLess(cc_redblacktree *tree,
 	return cursor_node;
 }
 
-cc_redblacktree_node *cc_redblacktree_findNodeWhenLeast(cc_redblacktree *tree)
+cco_redblacktree_node *cco_redblacktree_findNodeWhenLeast(cco_redblacktree *tree)
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_node *target_node;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_node *target_node;
 
 	do
 	{
@@ -989,10 +891,9 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenLeast(cc_redblacktree *tree)
 			target_node = NULL;
 			break;
 		}
-		properties = tree->properties;
-		cursor_node = properties->root_node;
-		target_node = &g_cc_redblacktree_node_nil;
-		while (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = tree->redblacktreeRoot;
+		target_node = &g_cco_redblacktree_node_nil;
+		while (cursor_node != &g_cco_redblacktree_node_nil)
 		{
 			target_node = cursor_node;
 			cursor_node = cursor_node->left_node;
@@ -1004,17 +905,13 @@ cc_redblacktree_node *cc_redblacktree_findNodeWhenLeast(cc_redblacktree *tree)
 /*
  * Calls a callback to the node.
  */
-void cc_redblacktree_traverse_preorder(cc_redblacktree_node *node,
-		cc_object *callbackobject, void(*callback)(cc_object *callbackobject,
-				cc_object *key, cc_object *object))
+void cco_redblacktree_traverse_preorder(cco_redblacktree_node *node, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
 		callback(callbackobject, node->key, node->object);
-		cc_redblacktree_traverse_preorder(node->left_node, callbackobject,
-				callback);
-		cc_redblacktree_traverse_preorder(node->right_node, callbackobject,
-				callback);
+		cco_redblacktree_traverse_preorder(node->left_node, callbackobject, callback);
+		cco_redblacktree_traverse_preorder(node->right_node, callbackobject, callback);
 	}
 	return;
 }
@@ -1027,21 +924,16 @@ void cc_redblacktree_traverse_preorder(cc_redblacktree_node *node,
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePreorder(cc_redblacktree *tree,
-		cc_object *callbackobject, void(*callback)(cc_object *callbackobject,
-				cc_object *key, cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePreorder(cco_redblacktree *tree, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		properties = tree->properties;
-		cc_redblacktree_traverse_preorder(properties->root_node,
-				callbackobject, callback);
+		cco_redblacktree_traverse_preorder(tree->redblacktreeRoot, callbackobject, callback);
 	}
 	return result;
 }
@@ -1054,21 +946,18 @@ cc_redblacktree_status cc_redblacktree_traversePreorder(cc_redblacktree *tree,
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePreorderWhenGreaterEqual(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenGreaterEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenGreaterEqual(tree, key);
-		cc_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenGreaterEqual(tree, key);
+		cco_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1081,21 +970,18 @@ cc_redblacktree_status cc_redblacktree_traversePreorderWhenGreaterEqual(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePreorderWhenGreater(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenGreater(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenGreater(tree, key);
-		cc_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenGreater(tree, key);
+		cco_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1108,21 +994,18 @@ cc_redblacktree_status cc_redblacktree_traversePreorderWhenGreater(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePreorderWhenLessEqual(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenLessEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenLessEqual(tree, key);
-		cc_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenLessEqual(tree, key);
+		cco_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1135,21 +1018,18 @@ cc_redblacktree_status cc_redblacktree_traversePreorderWhenLessEqual(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePreorderWhenLess(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenLess(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenLess(tree, key);
-		cc_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenLess(tree, key);
+		cco_redblacktree_traverse_preorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1157,17 +1037,13 @@ cc_redblacktree_status cc_redblacktree_traversePreorderWhenLess(
 /*
  * Calls a callback to the node.
  */
-void cc_redblacktree_traverse_inorder(cc_redblacktree_node *node,
-		cc_object *callbackobject, void(*callback)(cc_object *callbackobject,
-				cc_object *key, cc_object *object))
+void cco_redblacktree_traverse_inorder(cco_redblacktree_node *node, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
-		cc_redblacktree_traverse_inorder(node->left_node, callbackobject,
-				callback);
+		cco_redblacktree_traverse_inorder(node->left_node, callbackobject, callback);
 		callback(callbackobject, node->key, node->object);
-		cc_redblacktree_traverse_inorder(node->right_node, callbackobject,
-				callback);
+		cco_redblacktree_traverse_inorder(node->right_node, callbackobject, callback);
 	}
 	return;
 }
@@ -1180,21 +1056,16 @@ void cc_redblacktree_traverse_inorder(cc_redblacktree_node *node,
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traverseInorder(cc_redblacktree *tree,
-		cc_object *callbackobject, void(*callback)(cc_object *callbackobject,
-				cc_object *key, cc_object *object))
+cco_redblacktree_status cco_redblacktree_traverseInorder(cco_redblacktree *tree, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		properties = tree->properties;
-		cc_redblacktree_traverse_inorder(properties->root_node, callbackobject,
-				callback);
+		cco_redblacktree_traverse_inorder(tree->redblacktreeRoot, callbackobject, callback);
 	}
 	return result;
 }
@@ -1207,21 +1078,18 @@ cc_redblacktree_status cc_redblacktree_traverseInorder(cc_redblacktree *tree,
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traverseIneorderWhenGreaterEqual(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenGreaterEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenGreaterEqual(tree, key);
-		cc_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenGreaterEqual(tree, key);
+		cco_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1234,21 +1102,18 @@ cc_redblacktree_status cc_redblacktree_traverseIneorderWhenGreaterEqual(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traverseIneorderWhenGreater(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenGreater(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenGreater(tree, key);
-		cc_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenGreater(tree, key);
+		cco_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1261,21 +1126,18 @@ cc_redblacktree_status cc_redblacktree_traverseIneorderWhenGreater(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traverseIneorderWhenLessEqual(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenLessEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenLessEqual(tree, key);
-		cc_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenLessEqual(tree, key);
+		cco_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1288,21 +1150,18 @@ cc_redblacktree_status cc_redblacktree_traverseIneorderWhenLessEqual(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traverseIneorderWhenLess(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenLess(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenLess(tree, key);
-		cc_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
+		cursor_node = cco_redblacktree_findNodeWhenLess(tree, key);
+		cco_redblacktree_traverse_inorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1310,16 +1169,12 @@ cc_redblacktree_status cc_redblacktree_traverseIneorderWhenLess(
 /*
  * Calls a callback to the node.
  */
-void cc_redblacktree_traverse_postorder(cc_redblacktree_node *node,
-		cc_object *callbackobject, void(*callback)(cc_object *callbackobject,
-				cc_object *key, cc_object *object))
+void cco_redblacktree_traverse_postorder(cco_redblacktree_node *node, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
-		cc_redblacktree_traverse_postorder(node->left_node, callbackobject,
-				callback);
-		cc_redblacktree_traverse_postorder(node->right_node, callbackobject,
-				callback);
+		cco_redblacktree_traverse_postorder(node->left_node, callbackobject, callback);
+		cco_redblacktree_traverse_postorder(node->right_node, callbackobject, callback);
 		callback(callbackobject, node->key, node->object);
 	}
 	return;
@@ -1333,21 +1188,16 @@ void cc_redblacktree_traverse_postorder(cc_redblacktree_node *node,
  * 2. Visit the root node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePostorder(cc_redblacktree *tree,
-		cc_object *callbackobject, void(*callback)(cc_object *callbackobject,
-				cc_object *key, cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePostorder(cco_redblacktree *tree, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_properties *properties;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		properties = tree->properties;
-		cc_redblacktree_traverse_postorder(properties->root_node,
-				callbackobject, callback);
+		cco_redblacktree_traverse_postorder(tree->redblacktreeRoot, callbackobject, callback);
 	}
 	return result;
 }
@@ -1360,22 +1210,18 @@ cc_redblacktree_status cc_redblacktree_traversePostorder(cc_redblacktree *tree,
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePostorderWhenGreaterEqual(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenGreaterEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenGreaterEqual(tree, key);
-		cc_redblacktree_traverse_postorder(cursor_node, callbackobject,
-				callback);
+		cursor_node = cco_redblacktree_findNodeWhenGreaterEqual(tree, key);
+		cco_redblacktree_traverse_postorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1388,22 +1234,18 @@ cc_redblacktree_status cc_redblacktree_traversePostorderWhenGreaterEqual(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePostorderWhenGreater(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenGreater(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenGreater(tree, key);
-		cc_redblacktree_traverse_postorder(cursor_node, callbackobject,
-				callback);
+		cursor_node = cco_redblacktree_findNodeWhenGreater(tree, key);
+		cco_redblacktree_traverse_postorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1416,22 +1258,18 @@ cc_redblacktree_status cc_redblacktree_traversePostorderWhenGreater(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePostorderWhenLessEqual(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenLessEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenLessEqual(tree, key);
-		cc_redblacktree_traverse_postorder(cursor_node, callbackobject,
-				callback);
+		cursor_node = cco_redblacktree_findNodeWhenLessEqual(tree, key);
+		cco_redblacktree_traverse_postorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
@@ -1444,34 +1282,30 @@ cc_redblacktree_status cc_redblacktree_traversePostorderWhenLessEqual(
  * 2. Visit the node.
  * 3. Traverse the right subtree.
  */
-cc_redblacktree_status cc_redblacktree_traversePostorderWhenLess(
-		cc_redblacktree *tree, cc_object *key, cc_object *callbackobject,
-		void(*callback)(cc_object *callbackobject, cc_object *key,
-				cc_object *object))
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenLess(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object))
 {
-	cc_redblacktree_node *cursor_node;
-	cc_redblacktree_status result = CC_REDBLACKTREE_STATUS_SUCCESS;
+	cco_redblacktree_node *cursor_node;
+	cco_redblacktree_status result = CCO_REDBLACKTREE_STATUS_SUCCESS;
 	if (tree == NULL || key == NULL || callback == NULL)
 	{
-		result = CC_REDBLACKTREE_STATUS_ERROR;
+		result = CCO_REDBLACKTREE_STATUS_ERROR;
 	}
 	else
 	{
-		cursor_node = cc_redblacktree_findNodeWhenLess(tree, key);
-		cc_redblacktree_traverse_postorder(cursor_node, callbackobject,
-				callback);
+		cursor_node = cco_redblacktree_findNodeWhenLess(tree, key);
+		cco_redblacktree_traverse_postorder(cursor_node, callbackobject, callback);
 	}
 	return result;
 }
 
-int cc_redblacktree_contain(cc_redblacktree *tree, cc_object *key)
+int cco_redblacktree_contain(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_node *cursor_node;
+	cco_redblacktree_node *cursor_node;
 	int result = 0;
 	if (tree != NULL && key != NULL)
 	{
-		cursor_node = cc_redblacktree_findNodeWhenEqual(tree, key);
-		if (cursor_node != &g_cc_redblacktree_node_nil)
+		cursor_node = cco_redblacktree_findNodeWhenEqual(tree, key);
+		if (cursor_node != &g_cco_redblacktree_node_nil)
 		{
 			result = 1;
 		}
@@ -1479,93 +1313,92 @@ int cc_redblacktree_contain(cc_redblacktree *tree, cc_object *key)
 	return result;
 }
 
-cc_object *cc_redblacktree_get(cc_redblacktree *tree, cc_object *key)
+cco *cco_redblacktree_get(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenEqual(tree, key);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenEqual(tree, key);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-cc_object *cc_redblacktree_getWhenGreaterEqual(cc_redblacktree *tree,
-		cc_object *key)
+cco *cco_redblacktree_getWhenGreaterEqual(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenGreaterEqual(tree, key);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenGreaterEqual(tree, key);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-cc_object *cc_redblacktree_getWhenGreater(cc_redblacktree *tree, cc_object *key)
+cco *cco_redblacktree_getWhenGreater(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenGreater(tree, key);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenGreater(tree, key);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-cc_object *cc_redblacktree_getWhenGreatest(cc_redblacktree *tree)
+cco *cco_redblacktree_getWhenGreatest(cco_redblacktree *tree)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenGreatest(tree);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenGreatest(tree);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-cc_object *cc_redblacktree_getWhenLessEqual(cc_redblacktree *tree,
-		cc_object *key)
+cco *cco_redblacktree_getWhenLessEqual(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenLessEqual(tree, key);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenLessEqual(tree, key);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-cc_object *cc_redblacktree_getWhenLess(cc_redblacktree *tree, cc_object *key)
+cco *cco_redblacktree_getWhenLess(cco_redblacktree *tree, cco_v *key)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenLess(tree, key);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenLess(tree, key);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-cc_object *cc_redblacktree_getWhenLeast(cc_redblacktree *tree)
+cco *cco_redblacktree_getWhenLeast(cco_redblacktree *tree)
 {
-	cc_redblacktree_node *cursor_node;
-	cc_object *result_object = NULL;
-	cursor_node = cc_redblacktree_findNodeWhenLeast(tree);
-	if (cursor_node != &g_cc_redblacktree_node_nil)
+	cco_redblacktree_node *cursor_node;
+	cco *result_object = NULL;
+	cursor_node = cco_redblacktree_findNodeWhenLeast(tree);
+	if (cursor_node != &g_cco_redblacktree_node_nil)
 	{
-		result_object = cc_redblacktree_node_getObject(cursor_node);
+		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
 }
 
-void cc_redblacktree_tocstring_sub(cc_object *callbackobject, cc_object *key, cc_object *object)
+#if 0
+void cco_redblacktree_tocstring_sub(cco *callbackobject, cco *key, cco *object)
 {
 	char *key_cstr;
 	char *obj_cstr;
@@ -1588,42 +1421,42 @@ void cc_redblacktree_tocstring_sub(cc_object *callbackobject, cc_object *key, cc
 	cc_string_catenate(callbackobject, str2);
 	cc_string_catenate(callbackobject, obj_str);
 	cc_string_catenate(callbackobject, str3);
-	cc_object_release(key_str);
-	cc_object_release(obj_str);
+	cco_release(key_str);
+	cco_release(obj_str);
 	free(key_cstr);
 	free(obj_cstr);
 
-	cc_object_release(str1);
-	cc_object_release(str2);
-	cc_object_release(str3);
+	cco_release(str1);
+	cco_release(str2);
+	cco_release(str3);
 
 	return;
 }
 
-char *cc_redblacktree_tocstring(cc_redblacktree *table)
+char *cco_redblacktree_tocstring(cco_redblacktree *table)
 {
 	cc_string *str;
 	char *cstring = NULL;
 
 	str = cc_string_new("");
-	cc_redblacktree_traversePreorder(table, str, cc_redblacktree_tocstring_sub);
+	cco_redblacktree_traversePreorder(table, str, cco_redblacktree_tocstring_sub);
 	cstring = str->tocstring(str);
-	cc_object_release(str);
+	cco_release(str);
 	return cstring;
 }
 
 /*
  * For debug, prints a tree to the stdout.
  */
-void cc_redblacktree_printNode(cc_redblacktree *tree,
-		cc_redblacktree_node *node, int depth)
+void cco_redblacktree_printNode(cco_redblacktree *tree,
+		cco_redblacktree_node *node, int depth)
 {
 	int i;
 	char *cs_node_key;
 
-	if (node != &g_cc_redblacktree_node_nil)
+	if (node != &g_cco_redblacktree_node_nil)
 	{
-		cc_redblacktree_printNode(tree, node->left_node, depth + 1);
+		cco_redblacktree_printNode(tree, node->left_node, depth + 1);
 		for (i = 0; i < depth; i++)
 		{
 			printf("*");
@@ -1631,7 +1464,7 @@ void cc_redblacktree_printNode(cc_redblacktree *tree,
 		cs_node_key = node->key->tocstring(node->key);
 		printf("%s\n", cs_node_key);
 		free(cs_node_key);
-		cc_redblacktree_printNode(tree, node->right_node, depth + 1);
+		cco_redblacktree_printNode(tree, node->right_node, depth + 1);
 	}
 
 }

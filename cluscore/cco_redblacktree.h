@@ -78,6 +78,41 @@ void cco_redblacktree_baseFinalize(cco_redblacktree *cco);
 cco_redblacktree *cco_redblacktree_new();
 void cco_redblacktree_release(void *cco);
 
+cco_redblacktree_status cco_redblacktree_insert(cco_redblacktree *tree, cco_v *key, cco *value);
+cco_redblacktree_status cco_redblacktree_insertWithReplace(cco_redblacktree *tree, cco_v *key, cco *value);
+cco_redblacktree_status cco_redblacktree_insertWithCallback(cco_redblacktree *tree, cco_v *key, cco *value, cco_redblacktree_status( cb_collision)(cco *input_value, cco *target_value));
+
+cco_redblacktree_status cco_redblacktree_delete(cco_redblacktree *tree, cco_v *key);
+
+cco_redblacktree_status cco_redblacktree_traversePreorder(cco_redblacktree *tree, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenGreaterEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenGreater(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenLessEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePreorderWhenLess(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+
+cco_redblacktree_status cco_redblacktree_traverseInorder(cco_redblacktree *tree, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenGreaterEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenGreater(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenLessEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traverseIneorderWhenLess(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+
+cco_redblacktree_status cco_redblacktree_traversePostorder(cco_redblacktree *tree, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenGreaterEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenGreater(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenLessEqual(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+cco_redblacktree_status cco_redblacktree_traversePostorderWhenLess(cco_redblacktree *tree, cco_v *key, cco *callbackobject, void(*callback)(cco *callbackobject, cco_v *key, cco *object));
+
+int cco_redblacktree_contain(cco_redblacktree *tree, cco_v *key);
+
+cco *cco_redblacktree_get(cco_redblacktree *tree, cco_v *key);
+cco *cco_redblacktree_getWhenGreaterEqual(cco_redblacktree *tree, cco_v *key);
+cco *cco_redblacktree_getWhenGreater(cco_redblacktree *tree, cco_v *key);
+cco *cco_redblacktree_getWhenGreatest(cco_redblacktree *tree);
+cco *cco_redblacktree_getWhenLessEqual(cco_redblacktree *tree, cco_v *key);
+cco *cco_redblacktree_getWhenLess(cco_redblacktree *tree, cco_v *key);
+cco *cco_redblacktree_getWhenLeast(cco_redblacktree *tree);
+
+
 #endif /* CCO_REDBLACKTREE_H_ */
 
 /*

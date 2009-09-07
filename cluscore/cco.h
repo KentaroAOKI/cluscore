@@ -53,9 +53,9 @@ struct cco {
 	CCO_PROPERTIES
 };
 
-#define cco_defineClass(NAME) int g_cco_##NAME##_baseId;
-#define cco_setClass(CCO, NAME) ((cco*)CCO)->baseId = &g_cco_##NAME##_baseId;
-#define cco_compareClass(CCO, NAME) (((cco*)CCO)->baseId == &g_cco_##NAME##_baseId)
+#define cco_defineClass(NAME) int g_##NAME##_baseId;
+#define cco_setClass(CCO, NAME) ((cco*)CCO)->baseId = &g_##NAME##_baseId;
+#define cco_compareClass(CCO, NAME) (((cco*)CCO)->baseId == &g_##NAME##_baseId)
 
 cco *cco_baseNew(int size);
 void cco_baseRelease(void *o);

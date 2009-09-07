@@ -32,7 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-cco_defineClass(v);
+cco_defineClass(cco_v);
 
 cco_v *cco_v_baseNew(int size)
 {
@@ -47,7 +47,7 @@ cco_v *cco_v_baseNew(int size)
 		{
 			break;
 		}
-		cco_setClass(o, v);
+		cco_setClass(o, cco_v);
 		cco_v_baseInitialize(o);
 	} while (0);
 	return o;

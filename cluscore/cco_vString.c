@@ -32,7 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-cco_defineClass(vString);
+cco_defineClass(cco_vString);
 
 cco_vString *cco_vString_baseNew(int size)
 {
@@ -47,7 +47,7 @@ cco_vString *cco_vString_baseNew(int size)
 		{
 			break;
 		}
-		cco_setClass(o, vString);
+		cco_setClass(o, cco_vString);
 		cco_vString_baseInitialize(o);
 	} while (0);
 	return o;
