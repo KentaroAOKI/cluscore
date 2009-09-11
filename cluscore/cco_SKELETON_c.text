@@ -47,7 +47,7 @@ cco_defineClass(@CCOSKELETONLITTLENAME@);
 		{
 			break;
 		}
-		cco_setClass(o, @CCOSKELETONLITTLENAMEONLY@);
+		cco_setClass(o, @CCOSKELETONLITTLENAME@);
 		@CCOSKELETONLITTLENAME@_baseInitialize(o);
 	} while (0);
 	return o;
