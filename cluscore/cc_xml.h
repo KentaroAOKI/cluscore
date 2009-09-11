@@ -44,6 +44,7 @@ struct cc_xml_properties
 	cc_string *data;
 	cc_redblacktree *attributes;
 	cc_redblacktree *elements;
+	cc_arraylist *elementsList;
 };
 
 cc_xml *cc_xml_new(void);
@@ -54,6 +55,7 @@ void cc_xml_readBuffer(cc_xml *xml, char *buff);
 cc_arraylist *cc_xml_getElements(cc_xml *xml, char *path);
 cc_xml *cc_xml_getElementAtFront(cc_xml *xml, char *path);
 cc_xml *cc_xml_getElementAtBack(cc_xml *xml, char *path);
+cc_arraylist *cc_xml_getChildElements(cc_xml *xml, char *path);
 cc_string *cc_xml_getName(cc_xml *xml);
 cc_string *cc_xml_getContent(cc_xml *xml);
 cc_string *cc_xml_getAttribute(cc_xml *xml, char* name);
