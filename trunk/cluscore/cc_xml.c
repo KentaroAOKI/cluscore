@@ -43,6 +43,7 @@ cc_xml_properties *cc_xml_properties_new(void)
 		properties->data = cc_string_new("");
 		properties->attributes = cc_redblacktree_new();
 		properties->elements = cc_redblacktree_new();
+		properties->elementsList = cc_arraylist_new();
 	}
 	return properties;
 }
@@ -53,6 +54,7 @@ void cc_xml_properties_dispose(cc_xml_properties *properties)
 	cc_object_release(properties->data);
 	cc_object_release(properties->attributes);
 	cc_object_release(properties->elements);
+	cc_object_release(properties->elementsList);
 	free(properties);
 	return;
 }
@@ -120,6 +122,7 @@ void cc_xml_addChildElement(cc_xml *element, cc_xml *child_element)
 		}
 		cc_arraylist_addAtBack(target_elements, child_element);
 		cc_object_release(target_elements);
+		cc_arraylist_addAtBack(properties->elementsList, child_element);
 	}
 	return;
 }
@@ -427,6 +430,54 @@ cc_xml *cc_xml_getElementAtBack(cc_xml *xml, char *path)
 	return get_xml;
 }
 
+cc_arraylist *cc_xml_getChildElements(cc_xml *xml, char *path)
+{
+	cc_xml_properties *properties;
+	cc_arraylist *path_list;
+	cc_redblacktree *element_tree;
+	cc_string *path_str;
+	cc_arraylist *element_list = NULL;
+	cc_arraylist *targetelement_list = NULL;
+	cc_xml *cur_xml;
+	cc_xml_properties *cur_xml_properties = NULL;
+
+	do
+	{
+		if (xml == NULL || path == NULL)
+		{
+			break;
+		}
+		cur_xml_properties = xml->properties;
+		path_list = cc_xml_getElements_getParsePath(xml, path);
+		element_tree = cur_xml_properties->elements;
+		cc_arraylist_setCursorAtFront(path_list);
+		while (1)
+		{
+			path_str = cc_arraylist_getAtCursor(path_list);
+			element_list = cc_redblacktree_get(element_tree, path_str);
+			cc_object_release(path_str);
+			if (element_list == NULL)
+			{
+				break;
+			}
+			cc_arraylist_setCursorAtFront(element_list);
+			cur_xml = cc_arraylist_getAtCursor(element_list);
+			cur_xml_properties = cur_xml->properties;
+			targetelement_list = cur_xml_properties->elementsList;
+			cc_object_grab(cur_xml_properties->elementsList);
+			element_tree = cur_xml_properties->elements;
+			cc_object_release(cur_xml);
+			cc_object_release(element_list);
+			if (cc_arraylist_setCursorAtNext(path_list) < 0)
+			{
+				break;
+			}
+		}
+		cc_object_release(path_list);
+	} while (0);
+	return targetelement_list;
+}
+
 cc_string *cc_xml_getName(cc_xml *xml)
 {
 	cc_string *result_str = NULL;
@@ -548,8 +599,16 @@ char *cc_xml_tocstring(cc_xml *xml)
 		cc_string_catenate(result_string, string);
 		cc_object_release(string);
 
+		string = cc_string_new("<![CDATA[");
+		cc_string_catenate(result_string, string);
+		cc_object_release(string);
+
 		/* content */
 		cc_string_catenate(result_string, properties->data);
+
+		string = cc_string_new("]]>");
+		cc_string_catenate(result_string, string);
+		cc_object_release(string);
 	}
 	/* child elements */
 	cc_redblacktree_traversePreorder(properties->elements, result_string, cc_xml_rbtree_element_sub);
