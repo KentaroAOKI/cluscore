@@ -22,42 +22,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The cco_v Class for ClusCore.
+ * The cco_vBinary Class for ClusCore.
  *
  * Author:
  */
 
-#ifndef CCO_V_H_
-#define CCO_V_H_
+#include "cco_vBinary.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-#include "cco.h"
+cco_defineClass(cco_vBinary);
 
-#define CCO_V_PROPERTIES \
-	int (*v_compere)(void *cco_v1, void *cco_v2);\
-	int (*v_hash)(void *cco_v, int salt);\
-	char *(*v_getCstring)(void *cco_v);
+cco_vBinary *cco_vBinary_baseNew(int size)
+{
+	cco_vBinary *o = NULL;
+	do {
+		if (size < sizeof(cco_vBinary))
+		{
+			break;
+		}
+		o = (cco_vBinary *)cco_v_baseNew(size);
+		if (o == NULL)
+		{
+			break;
+		}
+		cco_setClass(o, cco_vBinary);
+		cco_vBinary_baseInitialize(o);
+	} while (0);
+	return o;
+}
 
-typedef struct cco_v cco_v;
+void cco_vBinary_baseRelease(void *o)
+{
+	cco_vBinary_baseFinalize(o);
+	cco_v_baseRelease(o);
+}
 
-struct cco_v {
-	CCO_PROPERTIES
-	CCO_V_PROPERTIES
-};
+void cco_vBinary_baseInitialize(cco_vBinary *o)
+{
+	o->baseRelease = &cco_vBinary_baseRelease;
+	o->cco_vBinary_func = &cco_vBinary_func;
+	return;
+}
 
-cco_v *cco_v_baseNew(int size);
-void cco_v_baseRelease(void *cco);
-void cco_v_baseInitialize(cco_v *cco);
-void cco_v_baseFinalize(cco_v *cco);
-cco_v *cco_v_new();
-void cco_v_release(void *cco);
+void cco_vBinary_baseFinalize(cco_vBinary *o)
+{
+	return;
+}
 
-char *cco_v_getCstring(void *o);
-int cco_v_hash(void *obj, int salt);
-int cco_v_compere(void *obj1, void *obj2);
+cco_vBinary *cco_vBinary_new()
+{
+	return cco_vBinary_baseNew(sizeof(cco_vBinary));
+}
 
-#endif /* CCO_V_H_ */
+void cco_vBinary_release(void *o)
+{
+	cco_release(o);
+}
 
-/*
-CCOINHERITANCE:CCO_PROPERTIES
-CCOINHERITANCE:CCO_V_PROPERTIES
-*/
+int cco_vBinary_func(void *obj)
+{
+	return 0;
+}

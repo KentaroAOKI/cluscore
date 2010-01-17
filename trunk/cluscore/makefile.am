@@ -13,7 +13,14 @@ cluscoreinc_HEADERS = \
 	cc_binarytree.h\
 	cc_hashtable.h\
 	cc_xml.h\
-	cc_stopwatch.h
+	cc_stopwatch.h\
+	config.h\
+	cco.h\
+	cco_v.h\
+	cco_arraylist.h\
+	cco_redblacktree.h\
+	cco_vString.h
+	
 install-exec-hook:
 	$(mkinstalldirs) $(DESTDIR)$(cluscoreincdir)
 #EXTRA_DIST = cluscoreversion.h.in
@@ -43,7 +50,17 @@ libcluscore_la_SOURCES = \
 	cc_xml.h\
 	cc_xml.c\
 	cc_stopwatch.h\
-	cc_stopwatch.c
+	cc_stopwatch.c\
+	cco.h\
+	cco.c\
+	cco_v.h\
+	cco_v.c\
+	cco_arraylist.h\
+	cco_arraylist.c\
+	cco_redblacktree.h\
+	cco_redblacktree.c\
+	cco_vString.h\
+	cco_vString.c
 
 INCLUDES =\
 	-I$(top_srcdir)/include\

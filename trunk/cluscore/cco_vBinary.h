@@ -22,53 +22,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The cco_vString Class for ClusCore.
+ * The cco_vBinary Class for ClusCore.
  *
  * Author:
  */
 
-#ifndef CCO_VSTRING_H_
-#define CCO_VSTRING_H_
+#ifndef CCO_VBINARY_H_
+#define CCO_VBINARY_H_
 
-#include <stdarg.h>
-#include "cco_arraylist.h"
 #include "cco_v.h"
 
-#define CCO_VSTRING_PROPERTIES \
-	char *vString_cstring;\
-	cco_arraylist *vString_otherstrings;\
-	int vString_length;
+#define CCO_VBINARY_PROPERTIES \
+	int cco_vBinary;\
+	int (*cco_vBinary_func)(void *cco_vBinary);
 
-typedef struct cco_vString cco_vString;
+typedef struct cco_vBinary cco_vBinary;
 
-struct cco_vString {
+struct cco_vBinary {
 	CCO_PROPERTIES
 	CCO_V_PROPERTIES
-	CCO_VSTRING_PROPERTIES
+	CCO_VBINARY_PROPERTIES
 };
 
-cco_vString *cco_vString_baseNew(int size);
-void cco_vString_baseRelease(void *cco);
-void cco_vString_baseInitialize(cco_vString *cco);
-void cco_vString_baseFinalize(cco_vString *cco);
-cco_vString *cco_vString_new(char *cstring);
-cco_vString *cco_vString_newWithLength(char *cstring, int length);
-cco_vString *cco_vString_newWithFormat(char *cstring_format, ...);
-cco_vString *cco_vString_newWithVformat(char *cstring_format, va_list ap);
-void cco_vString_release(void *cco);
+cco_vBinary *cco_vBinary_baseNew(int size);
+void cco_vBinary_baseRelease(void *cco);
+void cco_vBinary_baseInitialize(cco_vBinary *cco);
+void cco_vBinary_baseFinalize(cco_vBinary *cco);
+cco_vBinary *cco_vBinary_new();
+void cco_vBinary_release(void *cco);
+int cco_vBinary_func(void *cco_vBinary);
 
-char *cco_vString_getCstring(void *ccov_string);
-int cco_vString_hash(void *ccov_string, int salt);
-int cco_vString_compere(void *ccov_string1, void *ccov_string2);
-
-int cco_vString_length(cco_vString *o);
-void cco_vString_catenate(cco_vString *base_o, cco_vString *o);
-void cco_vString_catenateWithFormat(cco_vString *base_o, char *cstring_format, ...);
-
-#endif /* CCO_VSTRING_H_ */
-
-/*
+/* Don't touch following comment.
 CCOINHERITANCE:CCO_PROPERTIES
 CCOINHERITANCE:CCO_V_PROPERTIES
-CCOINHERITANCE:CCO_VSTRING_PROPERTIES
+CCOINHERITANCE:CCO_VBINARY_PROPERTIES
 */
+
+#endif /* CCO_VBINARY_H_ */

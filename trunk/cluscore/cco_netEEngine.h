@@ -22,42 +22,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The cco_v Class for ClusCore.
+ * The cco_netEEngine Class for ClusCore.
  *
  * Author:
  */
 
-#ifndef CCO_V_H_
-#define CCO_V_H_
+#ifndef CCO_NETEENGINE_H_
+#define CCO_NETEENGINE_H_
 
 #include "cco.h"
 
-#define CCO_V_PROPERTIES \
-	int (*v_compere)(void *cco_v1, void *cco_v2);\
-	int (*v_hash)(void *cco_v, int salt);\
-	char *(*v_getCstring)(void *cco_v);
+/*
+ * TODO: You should change code from default.
+ * You should change to following code and if you have additional variable
+ * or function, write code to here.
+ */
+#define CCO_NETEENGINE_PROPERTIES \
+	int cco_netEEngine;\
+	int (*cco_netEEngine_func)(void *cco_netEEngine);
 
-typedef struct cco_v cco_v;
+typedef struct cco_netEEngine cco_netEEngine;
 
-struct cco_v {
+struct cco_netEEngine {
 	CCO_PROPERTIES
-	CCO_V_PROPERTIES
+	CCO_NETEENGINE_PROPERTIES
 };
 
-cco_v *cco_v_baseNew(int size);
-void cco_v_baseRelease(void *cco);
-void cco_v_baseInitialize(cco_v *cco);
-void cco_v_baseFinalize(cco_v *cco);
-cco_v *cco_v_new();
-void cco_v_release(void *cco);
-
-char *cco_v_getCstring(void *o);
-int cco_v_hash(void *obj, int salt);
-int cco_v_compere(void *obj1, void *obj2);
-
-#endif /* CCO_V_H_ */
+cco_netEEngine *cco_netEEngine_baseNew(int size);
+void cco_netEEngine_baseRelease(void *cco);
+void cco_netEEngine_baseInitialize(cco_netEEngine *cco);
+void cco_netEEngine_baseFinalize(cco_netEEngine *cco);
+cco_netEEngine *cco_netEEngine_new();
+void cco_netEEngine_release(void *cco);
 
 /*
+ * TODO: You should change code from default.
+ * You should change to following code and if you have additional function,
+ * write code to here.
+ */
+int cco_netEEngine_func(void *cco_netEEngine);
+
+/* Don't touch following comment.
 CCOINHERITANCE:CCO_PROPERTIES
-CCOINHERITANCE:CCO_V_PROPERTIES
+CCOINHERITANCE:CCO_NETEENGINE_PROPERTIES
 */
+
+#endif /* CCO_NETEENGINE_H_ */

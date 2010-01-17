@@ -29,6 +29,8 @@
 #ifndef CCO_H_
 #define CCO_H_
 
+#include "config.h"
+
 #if HAVE_PTHREAD_H
 #include <pthread.h>
 #endif /* HAVE_PTHREAD_H */
@@ -36,14 +38,14 @@
 #if HAVE_PTHREAD_H
 #define CCO_PROPERTIES \
 	int *baseId;\
+	int *baseSuperId;\
 	int baseReferencecount;\
 	pthread_mutex_t baseReferencecountmutex;\
-	void (*baseRelease)(void *o);\
-	char *(*getCstring)(void *o);\
-	int (*compare)(void *o1, void *o2);
+	void (*baseRelease)(void *o);
 #else
 #define CCO_PROPERTIES \
 	int *baseId;\
+	int *baseSuperId;\
 	int baseReferencecount;\
 	void (*baseRelease)(void *o);
 #endif /* HAVE_PTHREAD_H */
@@ -54,8 +56,11 @@ struct cco {
 };
 
 #define cco_defineClass(NAME) int g_##NAME##_baseId;
-#define cco_setClass(CCO, NAME) ((cco*)CCO)->baseId = &g_##NAME##_baseId;
+#define cco_defineExternClass(NAME) extern int g_##NAME##_baseId;
+#define cco_setClass(CCO, NAME) ((cco*)CCO)->baseSuperId = ((cco*)CCO)->baseId;((cco*)CCO)->baseId = &g_##NAME##_baseId;
 #define cco_compareClass(CCO, NAME) (((cco*)CCO)->baseId == &g_##NAME##_baseId)
+#define cco_compareSuperClass(CCO, NAME) (((cco*)CCO)->baseSuperId == &g_##NAME##_baseId)
+#define cco_safeRelease(NAME) cco_release(NAME); NAME = NULL;
 
 cco *cco_baseNew(int size);
 void cco_baseRelease(void *o);
@@ -69,5 +74,5 @@ void cco_grab(void *o);
 #endif /* CCO_H_ */
 
 /*
-CCOPERTIES:CCO_PROPERTIES
+CCOINHERITANCE:CCO_PROPERTIES
 */

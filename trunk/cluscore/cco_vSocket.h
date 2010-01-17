@@ -22,36 +22,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The @CCOSKELETONLITTLENAME@ Class for ClusCore.
+ * The cco_vSocket Class for ClusCore.
  *
  * Author:
  */
 
-#ifndef @CCOSKELETONBIGNAME@_H_
-#define @CCOSKELETONBIGNAME@_H_
+#ifndef CCO_VSOCKET_H_
+#define CCO_VSOCKET_H_
 
-#include "@CCOSKELETONLITTLESUPERNAME@.h"
-
-#define @CCOSKELETONBIGNAME@_PROPERTIES \
-	int @CCOSKELETONLITTLENAME@;\
-	int (*@CCOSKELETONLITTLENAME@_func)(void *@CCOSKELETONLITTLENAME@);
-
-typedef struct @CCOSKELETONLITTLENAME@ @CCOSKELETONLITTLENAME@;
-
-struct @CCOSKELETONLITTLENAME@ {
-@CCOSKELETONSUPERPROPERTIES@	@CCOSKELETONBIGNAME@_PROPERTIES
-};
-
-@CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_baseNew(int size);
-void @CCOSKELETONLITTLENAME@_baseRelease(void *cco);
-void @CCOSKELETONLITTLENAME@_baseInitialize(@CCOSKELETONLITTLENAME@ *cco);
-void @CCOSKELETONLITTLENAME@_baseFinalize(@CCOSKELETONLITTLENAME@ *cco);
-@CCOSKELETONLITTLENAME@ *@CCOSKELETONLITTLENAME@_new();
-void @CCOSKELETONLITTLENAME@_release(void *cco);
-int @CCOSKELETONLITTLENAME@_func(void *@CCOSKELETONLITTLENAME@);
-
-#endif /* @CCOSKELETONBIGNAME@_H_ */
+#include "cco_v.h"
 
 /*
-@CCOSKELETONHIDESUPERPROPERTIES@CCOPERTIES:@CCOSKELETONBIGNAME@_PROPERTIES
+ * TODO: You should change code from default.
+ * You should change to following code and if you have additional variable
+ * or function, write code to here.
+ */
+#define CCO_VSOCKET_PROPERTIES \
+	int cco_vSocket;\
+	int (*cco_vSocket_func)(void *cco_vSocket);
+
+typedef struct cco_vSocket cco_vSocket;
+
+struct cco_vSocket {
+	CCO_PROPERTIES
+	CCO_V_PROPERTIES
+	CCO_VSOCKET_PROPERTIES
+};
+
+cco_vSocket *cco_vSocket_baseNew(int size);
+void cco_vSocket_baseRelease(void *cco);
+void cco_vSocket_baseInitialize(cco_vSocket *cco);
+void cco_vSocket_baseFinalize(cco_vSocket *cco);
+cco_vSocket *cco_vSocket_new();
+void cco_vSocket_release(void *cco);
+
+/*
+ * TODO: You should change code from default.
+ * You should change to following code and if you have additional function,
+ * write code to here.
+ */
+int cco_vSocket_func(void *cco_vSocket);
+
+/* Don't touch following comment.
+CCOINHERITANCE:CCO_PROPERTIES
+CCOINHERITANCE:CCO_V_PROPERTIES
+CCOINHERITANCE:CCO_VSOCKET_PROPERTIES
 */
+
+#endif /* CCO_VSOCKET_H_ */

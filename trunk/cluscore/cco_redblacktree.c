@@ -274,7 +274,7 @@ void cco_redblacktree_node_traversePostorder(cco_redblacktree_node *node, void(*
 /**
  * Rotates a tree in left.
  */
-inline void cco_redblacktree_rotateLeft(cco_redblacktree *tree, cco_redblacktree_node *node)
+void cco_redblacktree_rotateLeft(cco_redblacktree *tree, cco_redblacktree_node *node)
 {
 	cco_redblacktree_node *cursor_node;
 
@@ -305,7 +305,7 @@ inline void cco_redblacktree_rotateLeft(cco_redblacktree *tree, cco_redblacktree
 /**
  * Rotates a tree in right.
  */
-inline void cco_redblacktree_rotateRight(cco_redblacktree *tree, cco_redblacktree_node *node)
+void cco_redblacktree_rotateRight(cco_redblacktree *tree, cco_redblacktree_node *node)
 {
 	cco_redblacktree_node *cursor_node;
 
