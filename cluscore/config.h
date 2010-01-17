@@ -1,6 +1,5 @@
 /*
  *  Copyright (c) 2008-2009 Kentaro Aoki
- *  Copyright (c) 2009 ClusCore
  *
  *  http://www.cluscore.com/
  *
@@ -22,42 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The cco_v Class for ClusCore.
+ * The ClusCore.
  *
- * Author:
+ * Author: Kentaro Aoki
  */
 
-#ifndef CCO_V_H_
-#define CCO_V_H_
+#ifndef CCOCONFIG_H_
+#define CCOCONFIG_H_
 
-#include "cco.h"
-
-#define CCO_V_PROPERTIES \
-	int (*v_compere)(void *cco_v1, void *cco_v2);\
-	int (*v_hash)(void *cco_v, int salt);\
-	char *(*v_getCstring)(void *cco_v);
-
-typedef struct cco_v cco_v;
-
-struct cco_v {
-	CCO_PROPERTIES
-	CCO_V_PROPERTIES
-};
-
-cco_v *cco_v_baseNew(int size);
-void cco_v_baseRelease(void *cco);
-void cco_v_baseInitialize(cco_v *cco);
-void cco_v_baseFinalize(cco_v *cco);
-cco_v *cco_v_new();
-void cco_v_release(void *cco);
-
-char *cco_v_getCstring(void *o);
-int cco_v_hash(void *obj, int salt);
-int cco_v_compere(void *obj1, void *obj2);
-
-#endif /* CCO_V_H_ */
-
-/*
-CCOINHERITANCE:CCO_PROPERTIES
-CCOINHERITANCE:CCO_V_PROPERTIES
-*/
+#define HAVE_PTHREAD_H 1
+#define LIBCLUSCORE_DEBUG 0
+#endif

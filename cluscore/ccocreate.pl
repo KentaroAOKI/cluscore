@@ -57,14 +57,14 @@ $classname = $1;
 
 open(FILE, $super.".h");
 while(<FILE>){
-	if ($_ =~ m/^CCOPERTIES\:([A-Z0-9_]+)$/) {
+	if ($_ =~ m/^CCOINHERITANCE\:([A-Z0-9_]+)$/) {
 		$superprops = $superprops."\t".$1."\n";
-		$hidesuperprops = $hidesuperprops."CCOPERTIES:".$1."\n";
+		$hidesuperprops = $hidesuperprops."CCOINHERITANCE:".$1."\n";
 	}
 }
 close(FILE);
 
-open(FILE, "cco_SKELETON_h.text");
+open(FILE, "ccocreate_template_h.text");
 open(WFILE, ">".$class.".h");
 while(<FILE>){
 	$_ =~ s/\@CCOSKELETONSUPERPROPERTIES\@/$superprops/g;
@@ -78,7 +78,7 @@ while(<FILE>){
 close(WFILE);
 close(FILE);
 
-open(FILE, "cco_SKELETON_c.text");
+open(FILE, "ccocreate_template_c.text");
 open(WFILE, ">".$class.".c");
 while(<FILE>){
 	$_ =~ s/\@CCOSKELETONSUPERPROPERTIES\@/$superprops/g;

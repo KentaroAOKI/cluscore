@@ -62,12 +62,26 @@ void @CCOSKELETONLITTLENAME@_baseRelease(void *o)
 void @CCOSKELETONLITTLENAME@_baseInitialize(@CCOSKELETONLITTLENAME@ *o)
 {
 	o->baseRelease = &@CCOSKELETONLITTLENAME@_baseRelease;
+
+	/*
+	 * TODO: You should change code from default.
+	 * It is constructor. You should change to following code and
+	 * if you have additional valiable or function, write code to
+	 * initialize class.
+	 */
 	o->@CCOSKELETONLITTLENAME@_func = &@CCOSKELETONLITTLENAME@_func;
+
 	return;
 }
 
 void @CCOSKELETONLITTLENAME@_baseFinalize(@CCOSKELETONLITTLENAME@ *o)
 {
+	/*
+	 * TODO: You should change code from default.
+	 * It is destructor. If you write additional code in
+	 * @CCOSKELETONLITTLENAME@_baseInitialize function,
+	 * write code to finalize class.
+	 */
 	return;
 }
 
@@ -81,6 +95,11 @@ void @CCOSKELETONLITTLENAME@_release(void *o)
 	cco_release(o);
 }
 
+/*
+ * TODO: You should change code from default.
+ * You should change to following code and if you have additional function,
+ * write code to here.
+ */
 int @CCOSKELETONLITTLENAME@_func(void *obj)
 {
 	return 0;

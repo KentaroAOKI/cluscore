@@ -22,53 +22,55 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The cco_vString Class for ClusCore.
+ * The cco_vXml Class for ClusCore.
  *
  * Author:
  */
 
-#ifndef CCO_VSTRING_H_
-#define CCO_VSTRING_H_
+#ifndef CCO_VXML_H_
+#define CCO_VXML_H_
 
-#include <stdarg.h>
-#include "cco_arraylist.h"
 #include "cco_v.h"
+#include "cco_vString.h"
+#include "cco_arraylist.h"
+#include "cco_redblacktree.h"
 
-#define CCO_VSTRING_PROPERTIES \
-	char *vString_cstring;\
-	cco_arraylist *vString_otherstrings;\
-	int vString_length;
+#define CCO_VXML_PROPERTIES \
+	cco_vString *vXml_name;\
+	cco_vString *vXml_data;\
+	cco_redblacktree *vXml_attributes;\
+	cco_redblacktree *vXml_elements;\
+	cco_arraylist *vXml_elementsList;
 
-typedef struct cco_vString cco_vString;
+typedef struct cco_vXml cco_vXml;
 
-struct cco_vString {
+struct cco_vXml {
 	CCO_PROPERTIES
 	CCO_V_PROPERTIES
-	CCO_VSTRING_PROPERTIES
+	CCO_VXML_PROPERTIES
 };
 
-cco_vString *cco_vString_baseNew(int size);
-void cco_vString_baseRelease(void *cco);
-void cco_vString_baseInitialize(cco_vString *cco);
-void cco_vString_baseFinalize(cco_vString *cco);
-cco_vString *cco_vString_new(char *cstring);
-cco_vString *cco_vString_newWithLength(char *cstring, int length);
-cco_vString *cco_vString_newWithFormat(char *cstring_format, ...);
-cco_vString *cco_vString_newWithVformat(char *cstring_format, va_list ap);
-void cco_vString_release(void *cco);
+cco_vXml *cco_vXml_baseNew(int size);
+void cco_vXml_baseRelease(void *cco);
+void cco_vXml_baseInitialize(cco_vXml *cco);
+void cco_vXml_baseFinalize(cco_vXml *cco);
+cco_vXml *cco_vXml_new();
+void cco_vXml_release(void *cco);
 
-char *cco_vString_getCstring(void *ccov_string);
-int cco_vString_hash(void *ccov_string, int salt);
-int cco_vString_compere(void *ccov_string1, void *ccov_string2);
+void cco_vXml_read(cco_vXml *xml, char *uri);
+void cco_vXxml_readBuffer(cco_vXml *xml, char *buff);
+cco_arraylist *cco_vXxml_getElements(cco_vXml *xml, char *path);
+cco_vXml *cco_vXxml_getElementAtFront(cco_vXml *xml, char *path);
+cco_vXml *cco_vXxml_getElementAtBack(cco_vXml *xml, char *path);
+cco_arraylist *cco_vXxml_getChildElements(cco_vXml *xml, char *path);
+cco_vString *cco_vXxml_getName(cco_vXml *xml);
+cco_vString *cco_vXxml_getContent(cco_vXml *xml);
+cco_vString *cco_vXxml_getAttribute(cco_vXml *xml, char* name);
 
-int cco_vString_length(cco_vString *o);
-void cco_vString_catenate(cco_vString *base_o, cco_vString *o);
-void cco_vString_catenateWithFormat(cco_vString *base_o, char *cstring_format, ...);
-
-#endif /* CCO_VSTRING_H_ */
-
-/*
+/* Don't touch following comment.
 CCOINHERITANCE:CCO_PROPERTIES
 CCOINHERITANCE:CCO_V_PROPERTIES
-CCOINHERITANCE:CCO_VSTRING_PROPERTIES
+CCOINHERITANCE:CCO_VXML_PROPERTIES
 */
+
+#endif /* CCO_VXML_H_ */

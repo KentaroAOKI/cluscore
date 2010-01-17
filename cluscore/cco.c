@@ -32,10 +32,7 @@
 #include <pthread.h>
 #include "cco.h"
 
-#define LIBCLUSCORE_DEBUG 1
-
-
-#ifdef LIBCLUSCORE_DEBUG
+#if LIBCLUSCORE_DEBUG
 pthread_mutex_t  cco_baseDebugallocmutex = PTHREAD_MUTEX_INITIALIZER;
 int cco_baseDebugalloccount = 0;
 #endif
@@ -54,7 +51,7 @@ cco *cco_baseNew(int size)
 			break;
 		}
 		cco_baseInitialize(o);
-#ifdef LIBCLUSCORE_DEBUG
+#if LIBCLUSCORE_DEBUG
 		pthread_mutex_lock(&cco_baseDebugallocmutex);
 		cco_baseDebugalloccount ++;
 		pthread_mutex_unlock(&cco_baseDebugallocmutex);
@@ -67,9 +64,12 @@ void cco_baseRelease(void *o)
 {
 	cco_baseFinalize(o);
 	free(o);
-#ifdef LIBCLUSCORE_DEBUG
+#if LIBCLUSCORE_DEBUG
 	pthread_mutex_lock(&cco_baseDebugallocmutex);
 	cco_baseDebugalloccount --;
+	if ((cco_baseDebugalloccount%100) == 0) {
+		printf("don't release %d cco yet.\n", cco_baseDebugalloccount);
+	}
 	pthread_mutex_unlock(&cco_baseDebugallocmutex);
 #endif
 	return;
@@ -132,9 +132,9 @@ void cco_grab(void *o)
 	return;
 }
 
-void cco_printDaseDebugalloccount()
+void cco_printCountOfObjects()
 {
-#ifdef LIBCLUSCORE_DEBUG
+#if LIBCLUSCORE_DEBUG
 	printf("cco_baseDebugalloccount:%d\n", cco_baseDebugalloccount);
 #endif
 }

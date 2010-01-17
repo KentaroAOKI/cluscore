@@ -22,53 +22,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  *
- * The cco_vString Class for ClusCore.
+ * The cco_vAddrinfo Class for ClusCore.
  *
  * Author:
  */
 
-#ifndef CCO_VSTRING_H_
-#define CCO_VSTRING_H_
+#ifndef CCO_VADDRINFO_H_
+#define CCO_VADDRINFO_H_
 
-#include <stdarg.h>
-#include "cco_arraylist.h"
 #include "cco_v.h"
+#include "cco_vString.h"
+#include <sys/socket.h>
+#include <netdb.h>
 
-#define CCO_VSTRING_PROPERTIES \
-	char *vString_cstring;\
-	cco_arraylist *vString_otherstrings;\
-	int vString_length;
+#define CCO_VADDRINFO_PROPERTIES \
+	struct addrinfo vAddrinfo_addrinfo;
 
-typedef struct cco_vString cco_vString;
+typedef struct cco_vAddrinfo cco_vAddrinfo;
 
-struct cco_vString {
+struct cco_vAddrinfo {
 	CCO_PROPERTIES
 	CCO_V_PROPERTIES
-	CCO_VSTRING_PROPERTIES
+	CCO_VADDRINFO_PROPERTIES
 };
 
-cco_vString *cco_vString_baseNew(int size);
-void cco_vString_baseRelease(void *cco);
-void cco_vString_baseInitialize(cco_vString *cco);
-void cco_vString_baseFinalize(cco_vString *cco);
-cco_vString *cco_vString_new(char *cstring);
-cco_vString *cco_vString_newWithLength(char *cstring, int length);
-cco_vString *cco_vString_newWithFormat(char *cstring_format, ...);
-cco_vString *cco_vString_newWithVformat(char *cstring_format, va_list ap);
-void cco_vString_release(void *cco);
+cco_vAddrinfo *cco_vAddrinfo_baseNew(int size);
+void cco_vAddrinfo_baseRelease(void *cco);
+void cco_vAddrinfo_baseInitialize(cco_vAddrinfo *cco);
+void cco_vAddrinfo_baseFinalize(cco_vAddrinfo *cco);
+cco_vAddrinfo *cco_vAddrinfo_new(struct addrinfo *ptr_addrinfo);
+cco_vAddrinfo *cco_vAddrinfo_newWithNameInCstring(char *hostname);
+cco_vAddrinfo *cco_vAddrinfo_newWithNameInString(cco_vString *hostname);
+void cco_vAddrinfo_release(void *cco);
+char *cco_vAddrinfo_getCstring(void *o);
+int cco_vAddrinfo_hash(void *obj, int salt);
+int cco_vAddrinfo_compere(void *obj1, void *obj2);
 
-char *cco_vString_getCstring(void *ccov_string);
-int cco_vString_hash(void *ccov_string, int salt);
-int cco_vString_compere(void *ccov_string1, void *ccov_string2);
-
-int cco_vString_length(cco_vString *o);
-void cco_vString_catenate(cco_vString *base_o, cco_vString *o);
-void cco_vString_catenateWithFormat(cco_vString *base_o, char *cstring_format, ...);
-
-#endif /* CCO_VSTRING_H_ */
-
-/*
+/* Don't touch following comment.
 CCOINHERITANCE:CCO_PROPERTIES
 CCOINHERITANCE:CCO_V_PROPERTIES
-CCOINHERITANCE:CCO_VSTRING_PROPERTIES
+CCOINHERITANCE:CCO_VADDRINFO_PROPERTIES
 */
+
+#endif /* CCO_VADDRINFO_H_ */
