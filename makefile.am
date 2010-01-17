@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-SUBDIRS = cluscore test
+SUBDIRS = cluscore
 DIST_SUBDIRS = cluscore
 INCLUDES = -I$(top_builddir)/include
 
