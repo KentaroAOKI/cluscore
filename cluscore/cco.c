@@ -132,6 +132,12 @@ void cco_grab(void *o)
 	return;
 }
 
+void *cco_get(void *o)
+{
+	cco_grab(o);
+	return o;
+}
+
 void cco_printCountOfObjects()
 {
 #if LIBCLUSCORE_DEBUG
