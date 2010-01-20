@@ -70,6 +70,7 @@ int cco_compare(void *o1, void *o2);
 cco *cco_new();
 void cco_release(void *o);
 void cco_grab(void *o);
+void *cco_get(void *o);
 
 #endif /* CCO_H_ */
 
