@@ -61,7 +61,7 @@ am_libcluscore_la_OBJECTS = cc_object.lo cc_arraylist.lo \
 	cc_container.lo cc_integer.lo cc_redblacktree.lo cc_string.lo \
 	cc_binarytree.lo cc_hashtable.lo cc_xml.lo cc_stopwatch.lo \
 	cco.lo cco_v.lo cco_arraylist.lo cco_redblacktree.lo \
-	cco_vString.lo
+	cco_vString.lo cco_vXml.lo
 libcluscore_la_OBJECTS = $(am_libcluscore_la_OBJECTS)
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/include
 depcomp = $(SHELL) $(top_srcdir)/depcomp
@@ -212,7 +212,8 @@ cluscoreinc_HEADERS = \
 	cco_v.h\
 	cco_arraylist.h\
 	cco_redblacktree.h\
-	cco_vString.h
+	cco_vString.h\
+	cco_vXml.h
 
 #EXTRA_DIST = cluscoreversion.h.in
 
@@ -250,7 +251,9 @@ libcluscore_la_SOURCES = \
 	cco_redblacktree.h\
 	cco_redblacktree.c\
 	cco_vString.h\
-	cco_vString.c
+	cco_vString.c\
+	cco_vXml.h\
+	cco_vXml.c
 
 INCLUDES = \
 	-I$(top_srcdir)/include\
@@ -340,6 +343,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cco_redblacktree.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cco_v.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cco_vString.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cco_vXml.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
