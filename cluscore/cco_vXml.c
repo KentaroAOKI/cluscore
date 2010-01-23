@@ -1,6 +1,5 @@
 /*
  *  Copyright (c) 2008-2009 Kentaro Aoki
- *  Copyright (c) 2009 ClusCore
  *
  *  http://www.cluscore.com/
  *
@@ -24,13 +23,17 @@
  *
  * The cco_vXml Class for ClusCore.
  *
- * Author:
+ * Author: kentaro.aoki at gmail.com
  */
 
 #include "cco_vXml.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <libxml/xmlreader.h>
+#include <libxml/parser.h>
+
+char *cco_vXml_getCstring(void *obj);
 
 cco_defineClass(cco_vXml);
 
@@ -64,10 +67,11 @@ void cco_vXml_baseInitialize(cco_vXml *o)
 	o->baseRelease = &cco_vXml_baseRelease;
 
 	o->vXml_name = cco_vString_new("");
-	o->vXml_data = cco_vStringnew("");
+	o->vXml_data = cco_vString_new("");
 	o->vXml_attributes = cco_redblacktree_new();
 	o->vXml_elements = cco_redblacktree_new();
 	o->vXml_elementsList = cco_arraylist_new();
+	o->v_getCstring = &cco_vXml_getCstring;
 
 	return;
 }
@@ -94,135 +98,58 @@ void cco_vXml_release(void *o)
 
 void cco_vXml_setName(cco_vXml *xml, char *str)
 {
-	cco_vXml_properties *properties;
 	do
 	{
 		if (xml == NULL) {
 			break;
 		}
-		properties = xml->properties;
-		cco_release(properties->name);
-		properties->name = cco_vStringnew(str);
+		cco_release(xml->vXml_name);
+		xml->vXml_name = cco_vString_new(str);
 	} while (0);
 	return;
 }
 
 void cco_vXml_setData(cco_vXml *xml, char *str)
 {
-	cco_vXml_properties *properties;
 	do
 	{
 		if (xml == NULL) {
 			break;
 		}
-		properties = xml->properties;
-		cco_release(properties->data);
-		properties->data = cco_vString_new(str);
+		cco_release(xml->vXml_data);
+		xml->vXml_data = cco_vString_new(str);
 	} while (0);
 	return;
 }
 
 void cco_vXml_addChildElement(cco_vXml *element, cco_vXml *child_element)
 {
-	cco_vXml_properties *properties;
-	cco_vXml_properties *child_properties;
 	cco_arraylist *target_elements;
 
 	if (element != NULL && child_element != NULL)
 	{
-		properties = element->properties;
-		child_properties = child_element->properties;
-		target_elements = cco_redblacktree_get(properties->elements, child_properties->name);
+		target_elements = (cco_arraylist *)cco_redblacktree_get(element->vXml_elements, (cco_v *)child_element->vXml_name);
 		if (target_elements == NULL)
 		{
 			target_elements = cco_arraylist_new();
-			cco_redblacktree_insert(properties->elements, child_properties->name, target_elements);
+			cco_redblacktree_insert(element->vXml_elements, (cco_v *)child_element->vXml_name, (cco *)target_elements);
 		}
 		cco_arraylist_addAtBack(target_elements, child_element);
 		cco_release(target_elements);
-		cco_arraylist_addAtBack(properties->elementsList, child_element);
+		cco_arraylist_addAtBack(element->vXml_elementsList, child_element);
 	}
 	return;
 }
 
 void cco_vXml_addAttribute(cco_vXml *element, cco_vString *attrinute_name, cco_vString *attrinute_value)
 {
-	cco_vXml_properties *properties;
-
 	if (element != NULL && attrinute_name != NULL && attrinute_value != NULL)
 	{
-		properties = element->properties;
-		cco_redblacktree_insertWithReplace(properties->attributes, attrinute_name, attrinute_value);
+		cco_redblacktree_insertWithReplace(element->vXml_attributes, (cco_v *)attrinute_name, (cco *)attrinute_value);
 	}
 	return;
 }
 
-#if 0
-/* use xmlTextReader. */
-void cco_vXml_read_parse_node(cco_vXml *xml, xmlTextReaderPtr reader)
-{
-	xmlElementType node_type;
-
-	cco_vXml_properties *properties;
-	cco_redblacktree *element_tree;
-
-	cco_vXml *new_element;
-	cco_vString *element_name;
-	xmlChar *element_name_str;
-	cco_arraylist *target_elements;
-	int attribute_index;
-	int attribute_count;
-	xmlChar *attribute_value;
-
-	while (xmlTextReaderRead(reader) == 1) {
-		node_type = xmlTextReaderNodeType(reader);
-		if (node_type == XML_READER_TYPE_ELEMENT) {
-			/* Allocates memory for work. */
-			element_name_str = xmlTextReaderName(reader);
-			new_element = cco_vXml_new();
-			/* Adds child element to this element. */
-			cco_vXml_setName(new_element, element_name_str);
-			attribute_count = xmlTextReaderAttributeCount(reader);
-			for (attribute_index = 0; attribute_index < attribute_count; attribute_index++)
-			{
-				attribute_value = xmlTextReaderGetAttributeNo(reader, attribute_index);
-				xmlFree(attribute_value);
-			}
-			if (xmlTextReaderIsEmptyElement(reader) == 0) {
-				cco_vXml_read_parse_node(new_element, reader);
-			}
-			cco_vXml_addChildElement(xml, new_element);
-			/* Releases memory for work. */
-			cco_release(new_element);
-			xmlFree(element_name_str);
-		} else if (node_type == XML_READER_TYPE_END_ELEMENT) {
-			break;
-		} else if (node_type == XML_READER_TYPE_TEXT) {
-			element_name_str = xmlTextReaderValue(reader);
-			/* Sets data to this element. */
-			cco_vXml_setData(xml, element_name_str);
-			xmlFree(element_name_str);
-		} else if (node_type == XML_READER_TYPE_CDATA) {
-			element_name_str = xmlTextReaderValue(reader);
-			/* Sets data to this element. */
-			cco_vXml_setData(xml, element_name_str);
-			xmlFree(element_name_str);
-		}
-	}
-	return;
-}
-
-void cco_vXml_read(cco_vXml *xml, char *uri)
-{
-	xmlTextReaderPtr reader;
-
-	reader = xmlNewTextReaderFilename(uri);
-	cco_vXml_read_parse_node(xml, reader);
-	xmlFreeTextReader(reader);
-	xmlCleanupParser();
-	return;
-}
-#else
 /* use xmlTextReader. */
 void cco_vXml_read_parse_node(cco_vXml *xml, xmlNodePtr this_node)
 {
@@ -317,7 +244,6 @@ void cco_vXml_readBuffer(cco_vXml *xml, char *buff)
 	}
 	return;
 }
-#endif
 
 cco_arraylist *cco_vXml_getElements_getParsePath(cco_vXml *xml, char *path)
 {
@@ -361,13 +287,11 @@ cco_arraylist *cco_vXml_getElements_getParsePath(cco_vXml *xml, char *path)
 
 cco_arraylist *cco_vXml_getElements(cco_vXml *xml, char *path)
 {
-	cco_vXml_properties *properties;
 	cco_arraylist *path_list;
 	cco_redblacktree *element_tree;
 	cco_vString *path_str;
 	cco_arraylist *element_list = NULL;
 	cco_vXml *cur_xml;
-	cco_vXml_properties *cur_xml_properties;
 
 	do
 	{
@@ -375,14 +299,13 @@ cco_arraylist *cco_vXml_getElements(cco_vXml *xml, char *path)
 		{
 			break;
 		}
-		properties = xml->properties;
 		path_list = cco_vXml_getElements_getParsePath(xml, path);
-		element_tree = properties->elements;
+		element_tree = xml->vXml_elements;
 		cco_arraylist_setCursorAtFront(path_list);
 		while (1)
 		{
-			path_str = cco_arraylist_getAtCursor(path_list);
-			element_list = cco_redblacktree_get(element_tree, path_str);
+			path_str = (cco_vString *)cco_arraylist_getAtCursor(path_list);
+			element_list = (cco_arraylist *)cco_redblacktree_get(element_tree, (cco_v *)path_str);
 			cco_release(path_str);
 			if (element_list == NULL)
 			{
@@ -393,9 +316,8 @@ cco_arraylist *cco_vXml_getElements(cco_vXml *xml, char *path)
 			{
 				break;
 			}
-			cur_xml = cco_arraylist_getAtCursor(element_list);
-			cur_xml_properties = cur_xml->properties;
-			element_tree = cur_xml_properties->elements;
+			cur_xml = (cco_vXml *)cco_arraylist_getAtCursor(element_list);
+			element_tree = cur_xml->vXml_elements;
 			cco_release(cur_xml);
 			cco_release(element_list);
 		}
@@ -419,7 +341,7 @@ cco_vXml *cco_vXml_getElementAtFront(cco_vXml *xml, char *path)
 		if (get_xml_list == NULL) {
 			break;
 		}
-		get_xml = cco_arraylist_getAtFront(get_xml_list);
+		get_xml = (cco_vXml *)cco_arraylist_getAtFront(get_xml_list);
 		cco_release(get_xml_list);
 	} while (0);
 
@@ -441,7 +363,7 @@ cco_vXml *cco_vXml_getElementAtBack(cco_vXml *xml, char *path)
 		if (get_xml_list == NULL) {
 			break;
 		}
-		get_xml = cco_arraylist_getAtBack(get_xml_list);
+		get_xml = (cco_vXml *)cco_arraylist_getAtBack(get_xml_list);
 		cco_release(get_xml_list);
 	} while (0);
 
@@ -450,14 +372,12 @@ cco_vXml *cco_vXml_getElementAtBack(cco_vXml *xml, char *path)
 
 cco_arraylist *cco_vXml_getChildElements(cco_vXml *xml, char *path)
 {
-	cco_vXml_properties *properties;
 	cco_arraylist *path_list;
 	cco_redblacktree *element_tree;
 	cco_vString *path_str;
 	cco_arraylist *element_list = NULL;
 	cco_arraylist *targetelement_list = NULL;
 	cco_vXml *cur_xml;
-	cco_vXml_properties *cur_xml_properties = NULL;
 
 	do
 	{
@@ -465,25 +385,23 @@ cco_arraylist *cco_vXml_getChildElements(cco_vXml *xml, char *path)
 		{
 			break;
 		}
-		cur_xml_properties = xml->properties;
 		path_list = cco_vXml_getElements_getParsePath(xml, path);
-		element_tree = cur_xml_properties->elements;
+		element_tree = xml->vXml_elements;
 		cco_arraylist_setCursorAtFront(path_list);
 		while (1)
 		{
-			path_str = cco_arraylist_getAtCursor(path_list);
-			element_list = cco_redblacktree_get(element_tree, path_str);
+			path_str = (cco_vString *)cco_arraylist_getAtCursor(path_list);
+			element_list = (cco_arraylist *)cco_redblacktree_get(element_tree, (cco_v*)path_str);
 			cco_release(path_str);
 			if (element_list == NULL)
 			{
 				break;
 			}
 			cco_arraylist_setCursorAtFront(element_list);
-			cur_xml = cco_arraylist_getAtCursor(element_list);
-			cur_xml_properties = cur_xml->properties;
-			targetelement_list = cur_xml_properties->elementsList;
-			cco_grab(cur_xml_properties->elementsList);
-			element_tree = cur_xml_properties->elements;
+			cur_xml = (cco_vXml *)cco_arraylist_getAtCursor(element_list);
+			targetelement_list = cur_xml->vXml_elementsList;
+			cco_grab(cur_xml->vXml_elementsList);
+			element_tree = cur_xml->vXml_elements;
 			cco_release(cur_xml);
 			cco_release(element_list);
 			if (cco_arraylist_setCursorAtNext(path_list) < 0)
@@ -499,12 +417,10 @@ cco_arraylist *cco_vXml_getChildElements(cco_vXml *xml, char *path)
 cco_vString *cco_vXml_getName(cco_vXml *xml)
 {
 	cco_vString *result_str = NULL;
-	cco_vXml_properties *properties;
 	if (xml != NULL)
 	{
-		properties = xml->properties;
-		cco_grab(properties->name);
-		result_str = properties->name;
+		cco_grab(xml->vXml_name);
+		result_str = xml->vXml_name;
 	}
 	return result_str;
 }
@@ -512,12 +428,10 @@ cco_vString *cco_vXml_getName(cco_vXml *xml)
 cco_vString *cco_vXml_getContent(cco_vXml *xml)
 {
 	cco_vString *result_str = NULL;
-	cco_vXml_properties *properties;
 	if (xml != NULL)
 	{
-		properties = xml->properties;
-		cco_grab(properties->data);
-		result_str = properties->data;
+		cco_grab(xml->vXml_data);
+		result_str = xml->vXml_data;
 	}
 	return result_str;
 }
@@ -525,20 +439,17 @@ cco_vString *cco_vXml_getContent(cco_vXml *xml)
 cco_vString *cco_vXml_getAttribute(cco_vXml *xml, char* name)
 {
 	cco_vString *result_str = NULL;
-	cco_vXml_properties *properties;
 	cco_vString *name_str;
 	if (xml != NULL)
 	{
-		properties = xml->properties;
 		name_str = cco_vString_new(name);
-		result_str = cco_redblacktree_get(properties->attributes, name_str);
+		result_str = (cco_vString *)cco_redblacktree_get(xml->vXml_attributes, (cco_v *)name_str);
 		cco_release(name_str);
 	}
 	return result_str;
 }
 
-
-void cco_vXml_rbtree_attribute_sub(cco *callbackobject, cco *key, cco *object)
+void cco_vXml_rbtree_attribute_sub(cco *callbackobject, cco_v *key, cco *object)
 {
 	char *key_cstr;
 	char *obj_cstr;
@@ -548,19 +459,22 @@ void cco_vXml_rbtree_attribute_sub(cco *callbackobject, cco *key, cco *object)
 	cco_vString *str2;
 	cco_vString *str3;
 
+	cco_v *object_v = (cco_v *)object;
+	cco_vString *callbackobject_string = (cco_vString *)callbackobject;
+
 	str1 = cco_vString_new(" ");
 	str2 = cco_vString_new("=\"");
 	str3 = cco_vString_new("\"");
 
-	key_cstr = key->tocstring(key);
-	obj_cstr = object->tocstring(object);
+	key_cstr = key->v_getCstring(key);
+	obj_cstr = object_v->v_getCstring(object_v);
 	key_str = cco_vString_new(key_cstr);
 	obj_str = cco_vString_new(obj_cstr);
-	cco_vString_catenate(callbackobject, str1);
-	cco_vString_catenate(callbackobject, key_str);
-	cco_vString_catenate(callbackobject, str2);
-	cco_vString_catenate(callbackobject, obj_str);
-	cco_vString_catenate(callbackobject, str3);
+	cco_vString_catenate(callbackobject_string, str1);
+	cco_vString_catenate(callbackobject_string, key_str);
+	cco_vString_catenate(callbackobject_string, str2);
+	cco_vString_catenate(callbackobject_string, obj_str);
+	cco_vString_catenate(callbackobject_string, str3);
 	cco_release(key_str);
 	cco_release(obj_str);
 	free(key_cstr);
@@ -573,76 +487,64 @@ void cco_vXml_rbtree_attribute_sub(cco *callbackobject, cco *key, cco *object)
 	return;
 }
 
-void cco_vXml_rbtree_element_sub(cco *callbackobject, cco *key, cco *object)
+void cco_vXml_rbtree_element_sub(cco *callbackobject, cco_v *key, cco *object)
 {
 	char *obj_cstr;
 	cco_vString *obj_str;
 	cco_vXml *xml;
+	cco_arraylist *list_object = (cco_arraylist *)object;
 
-	cco_arraylist_setCursorAtFront(object);
-	while(xml = cco_arraylist_getAtCursor(object))
+	cco_arraylist_setCursorAtFront(list_object);
+	while(xml = (cco_vXml *)cco_arraylist_getAtCursor(list_object))
 	{
-		obj_cstr = xml->tocstring(xml);
+		obj_cstr = xml->v_getCstring(xml);
 		obj_str = cco_vString_new(obj_cstr);
-		cco_vString_catenate(callbackobject, obj_str);
+		cco_vString_catenate((cco_vString *)callbackobject, obj_str);
 		cco_release(obj_str);
 		cco_release(xml);
-		cco_arraylist_setCursorAtNext(object);
+		cco_arraylist_setCursorAtNext(list_object);
 	}
 	return;
 }
 
-char *cco_vXml_tocstring(cco_vXml *xml)
+char *cco_vXml_getCstring(void *obj)
 {
-	cco_vXml_properties *properties;
+	cco_vXml *xml = (cco_vXml *)obj;
 	cco_vString *result_string;
 	cco_vString *string;
 	char *cstring;
 
-	properties = xml->properties;
-
 	/* element name */
 	result_string = cco_vString_new("");
-	if (cco_vString_length(properties->name) != 0)
+	if (cco_vString_length(xml->vXml_name) != 0)
 	{
-		string = cco_vString_new("<");
+		string = cco_vString_newWithFormat("<%@", xml->vXml_name);
 		cco_vString_catenate(result_string, string);
 		cco_release(string);
-		cco_vString_catenate(result_string, properties->name);
 
 		/* attribute */
-		cco_redblacktree_traversePreorder(properties->attributes, result_string, cco_vXml_rbtree_attribute_sub);
+		cco_redblacktree_traversePreorder(xml->vXml_attributes, (cco *)result_string, cco_vXml_rbtree_attribute_sub);
 
 		string = cco_vString_new(">");
 		cco_vString_catenate(result_string, string);
 		cco_release(string);
 
-		string = cco_vString_new("<![CDATA[");
-		cco_vString_catenate(result_string, string);
-		cco_release(string);
-
 		/* content */
-		cco_vString_catenate(result_string, properties->data);
-
-		string = cco_vString_new("]]>");
+		string = cco_vString_newWithFormat("<![CDATA[%@]]>", xml->vXml_data);
 		cco_vString_catenate(result_string, string);
 		cco_release(string);
 	}
 	/* child elements */
-	cco_redblacktree_traversePreorder(properties->elements, result_string, cco_vXml_rbtree_element_sub);
+	cco_redblacktree_traversePreorder(xml->vXml_elements, (cco *)result_string, cco_vXml_rbtree_element_sub);
 
-	if (cco_vString_length(properties->name) != 0)
+	if (cco_vString_length(xml->vXml_name) != 0)
 	{
-		string = cco_vString_new("</");
-		cco_vString_catenate(result_string, string);
-		cco_release(string);
-		cco_vString_catenate(result_string, properties->name);
-		string = cco_vString_new(">\n");
+		string = cco_vString_newWithFormat("</%@>\n", xml->vXml_name);
 		cco_vString_catenate(result_string, string);
 		cco_release(string);
 	}
 
-	cstring = result_string->tocstring(result_string);
+	cstring = result_string->v_getCstring(result_string);
 	cco_release(result_string);
 	return cstring;
 }

@@ -19,7 +19,8 @@ cluscoreinc_HEADERS = \
 	cco_v.h\
 	cco_arraylist.h\
 	cco_redblacktree.h\
-	cco_vString.h
+	cco_vString.h\
+	cco_vXml.h
 	
 install-exec-hook:
 	$(mkinstalldirs) $(DESTDIR)$(cluscoreincdir)
@@ -60,7 +61,9 @@ libcluscore_la_SOURCES = \
 	cco_redblacktree.h\
 	cco_redblacktree.c\
 	cco_vString.h\
-	cco_vString.c
+	cco_vString.c\
+	cco_vXml.h\
+	cco_vXml.c
 
 INCLUDES =\
 	-I$(top_srcdir)/include\
