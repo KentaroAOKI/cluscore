@@ -60,7 +60,6 @@ struct cco {
 #define cco_setClass(CCO, NAME) ((cco*)CCO)->baseSuperId = ((cco*)CCO)->baseId;((cco*)CCO)->baseId = &g_##NAME##_baseId;
 #define cco_compareClass(CCO, NAME) (((cco*)CCO)->baseId == &g_##NAME##_baseId)
 #define cco_compareSuperClass(CCO, NAME) (((cco*)CCO)->baseSuperId == &g_##NAME##_baseId)
-#define cco_safeRelease(NAME) cco_release(NAME); NAME = NULL;
 
 cco *cco_baseNew(int size);
 void cco_baseRelease(void *o);
@@ -69,6 +68,7 @@ void cco_baseFinalize(cco *o);
 int cco_compare(void *o1, void *o2);
 cco *cco_new();
 void cco_release(void *o);
+void cco_safeRelease(void **o);
 void cco_grab(void *o);
 void *cco_get(void *o);
 
