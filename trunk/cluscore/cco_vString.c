@@ -490,3 +490,67 @@ static char *cco_vString_format_sub_itoa(char *buf, int buflen, int i)
 	}
 	return pos;
 }
+
+cco_vString *cco_vString_getReplasedString(cco_vString *string, char *target_regex,
+		cco_vString *replase_string)
+{
+	regex_t preg;
+	regmatch_t pmatch[1];
+	cco_vString *work_string;
+	char *build_string;
+	int build_string_length;
+	char *check_string;
+	int check_string_length;
+	cco_vString *result = NULL;
+
+	do {
+		if (regcomp(&preg, target_regex, REG_EXTENDED) != 0)
+		{
+			break;
+		}
+		build_string = cco_vString_getCstring(string);
+		build_string_length = cco_vString_length(string);
+
+		result = cco_vString_new("");
+		/* do replace */
+		check_string = build_string;
+		check_string_length = build_string_length;
+		while (regexec(&preg, check_string, 1, pmatch, 0) == 0)
+		{
+			/* fetch string to match string before. */
+			check_string[pmatch[0].rm_so] = 0;
+			work_string = cco_vString_new(check_string);
+			cco_vString_catenate(result, work_string);
+			cco_release(work_string);
+			/* catenates replase_string. */
+			/*
+			 * TODO: checks inheritanceId
+			 */
+			cco_vString_catenate(result, replase_string);
+			/* changes a status of string. */
+			check_string = check_string + pmatch[0].rm_eo;
+			check_string_length -= pmatch[0].rm_eo;
+			//printf("%d - %d(%d)\n", pmatch[0].rm_so, pmatch[0].rm_eo, check_string_length);
+		}
+		/* catenates last string. */
+		work_string = cco_vString_new(check_string);
+		cco_vString_catenate(result, work_string);
+		cco_release(work_string);
+
+		free(build_string);
+		regfree(&preg);
+	} while(0);
+	return result;
+}
+
+cco_vString *cco_vString_getReplasedStringWithCstring(cco_vString *string, char *target_regex,
+		char *replase_cstring)
+{
+	cco_vString *replase_string;
+	cco_vString *result = NULL;
+
+	replase_string = cco_vString_new(replase_cstring);
+	result = cco_vString_getReplasedString(string, target_regex, replase_string);
+	cc_string_release(replase_string);
+	return result;
+}

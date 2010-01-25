@@ -37,6 +37,8 @@ cco_defineClass(cco_redblacktree)
 cco_redblacktree_node g_cco_redblacktree_node_nil =
 { NULL, NULL, NULL, NULL, CCO_REDBLACKTREE_COLOR_BLACK, NULL};
 
+void cco_redblacktree_node_dispose(cco_redblacktree_node *node);
+void cco_redblacktree_node_traversePostorder(cco_redblacktree_node *node, void(*cb)(cco_redblacktree_node *node));
 cco_redblacktree_status cco_redblacktree_insert_collision(cco_redblacktree_node *current_node, cco_redblacktree_node *insert_node);
 cco_redblacktree_status cco_redblacktree_insert_collisionWithReplace(cco_redblacktree_node *cursor_node, cco_redblacktree_node *insert_node);
 cco_redblacktree_status cco_redblacktree_insert_do(cco_redblacktree *tree, cco_v *key, cco *value, cco_redblacktree_status( cb_collision)(cco_redblacktree_node *current_node,
@@ -79,6 +81,9 @@ void cco_redblacktree_baseInitialize(cco_redblacktree *o)
 
 void cco_redblacktree_baseFinalize(cco_redblacktree *o)
 {
+	/* disposes cc_redblacktree_properties */
+	cco_redblacktree_node_traversePostorder(o->redblacktreeRoot,
+			&cco_redblacktree_node_dispose);
 	return;
 }
 

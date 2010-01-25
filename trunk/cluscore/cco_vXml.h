@@ -58,14 +58,14 @@ cco_vXml *cco_vXml_new();
 void cco_vXml_release(void *cco);
 
 void cco_vXml_read(cco_vXml *xml, char *uri);
-void cco_vXxml_readBuffer(cco_vXml *xml, char *buff);
-cco_arraylist *cco_vXxml_getElements(cco_vXml *xml, char *path);
-cco_vXml *cco_vXxml_getElementAtFront(cco_vXml *xml, char *path);
-cco_vXml *cco_vXxml_getElementAtBack(cco_vXml *xml, char *path);
-cco_arraylist *cco_vXxml_getChildElements(cco_vXml *xml, char *path);
-cco_vString *cco_vXxml_getName(cco_vXml *xml);
-cco_vString *cco_vXxml_getContent(cco_vXml *xml);
-cco_vString *cco_vXxml_getAttribute(cco_vXml *xml, char* name);
+void cco_vXml_readBuffer(cco_vXml *xml, char *buff);
+cco_arraylist *cco_vXml_getElements(cco_vXml *xml, char *path);
+cco_vXml *cco_vXml_getElementAtFront(cco_vXml *xml, char *path);
+cco_vXml *cco_vXml_getElementAtBack(cco_vXml *xml, char *path);
+cco_arraylist *cco_vXml_getChildElements(cco_vXml *xml, char *path);
+cco_vString *cco_vXml_getName(cco_vXml *xml);
+cco_vString *cco_vXml_getContent(cco_vXml *xml);
+cco_vString *cco_vXml_getAttribute(cco_vXml *xml, char* name);
 
 /* Don't touch following comment.
 CCOINHERITANCE:CCO_PROPERTIES
