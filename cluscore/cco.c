@@ -115,13 +115,6 @@ void cco_release(void *o)
 	return;
 }
 
-void cco_safeRelease(void **o)
-{
-	cco_release((void *)*o);
-	*o = NULL;
-	return;
-}
-
 void cco_grab(void *o)
 {
 	int count;
