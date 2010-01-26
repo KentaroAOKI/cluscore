@@ -66,6 +66,7 @@ void cco_vString_catenate(cco_vString *base_o, cco_vString *o);
 void cco_vString_catenateWithFormat(cco_vString *base_o, char *cstring_format, ...);
 cco_vString *cco_vString_getReplasedString(cco_vString *string, char *target_regex,	cco_vString *replase_string);
 cco_vString *cco_vString_getReplasedStringWithCstring(cco_vString *string, char *target_regex, char *replase_cstring);
+int cco_vString_toInt(cco_vString *string);
 
 #endif /* CCO_VSTRING_H_ */
 
