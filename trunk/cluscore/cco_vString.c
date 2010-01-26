@@ -554,3 +554,17 @@ cco_vString *cco_vString_getReplasedStringWithCstring(cco_vString *string, char 
 	cc_string_release(replase_string);
 	return result;
 }
+
+int cco_vString_toInt(cco_vString *string)
+{
+	char *cstring;
+	int result = -1;
+
+	if (string != NULL)
+	{
+		cstring = cco_vString_getCstring(string);
+		result = atoi(cstring);
+		free(cstring);
+	}
+	return result;
+}
