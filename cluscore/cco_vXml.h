@@ -67,6 +67,11 @@ cco_vString *cco_vXml_getName(cco_vXml *xml);
 cco_vString *cco_vXml_getContent(cco_vXml *xml);
 cco_vString *cco_vXml_getAttribute(cco_vXml *xml, char* name);
 
+void cco_vXml_setName(cco_vXml *xml, char *str);
+void cco_vXml_setData(cco_vXml *xml, char *str);
+void cco_vXml_addAttribute(cco_vXml *xml, cco_vString *attrinute_name, cco_vString *attrinute_value);
+void cco_vXml_addChildElement(cco_vXml *xml, cco_vXml *child_element);
+
 /* Don't touch following comment.
 CCOINHERITANCE:CCO_PROPERTIES
 CCOINHERITANCE:CCO_V_PROPERTIES
