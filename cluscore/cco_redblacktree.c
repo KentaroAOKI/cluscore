@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2008-2009 Kentaro Aoki
- *  Copyright (c) 2009 ClusCore
+ *  Copyright (c) 2008-2010 Kentaro Aoki
  *
  *  http://www.cluscore.com/
  *
@@ -453,6 +452,7 @@ cco_redblacktree_status cco_redblacktree_insert_do(cco_redblacktree *tree, cco_v
 			}
 			/* fixes up for data structure. */
 			cco_redblacktree_insert_fixup(tree, insert_node);
+			tree->count ++;
 		}
 		else
 		{
@@ -615,6 +615,7 @@ cco_redblacktree_status cco_redblacktree_delete(cco_redblacktree *tree, cco_v *k
 			cco_redblacktree_delete_fixup(tree, cursor_x_node);
 		}
 		cco_redblacktree_node_dispose(cursor_y_node);
+		tree->count --;
 	} while (0);
 	return result;
 }
@@ -1400,6 +1401,15 @@ cco *cco_redblacktree_getWhenLeast(cco_redblacktree *tree)
 		result_object = cco_redblacktree_node_getObject(cursor_node);
 	}
 	return result_object;
+}
+
+int cco_redblacktree_count(cco_redblacktree *tree)
+{
+	int result = -1;
+	if (tree != NULL) {
+		result = tree->count;
+	}
+	return result;
 }
 
 #if 0
