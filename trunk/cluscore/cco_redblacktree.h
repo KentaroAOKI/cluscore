@@ -1,6 +1,5 @@
 /*
- *  Copyright (c) 2008-2009 Kentaro Aoki
- *  Copyright (c) 2009 ClusCore
+ *  Copyright (c) 2008-2010 Kentaro Aoki
  *
  *  http://www.cluscore.com/
  *
@@ -24,7 +23,7 @@
  *
  * The cco_redblacktree Class for ClusCore.
  *
- * Author:
+ * Author: kentaro aoki
  */
 
 #ifndef CCO_REDBLACKTREE_H_
@@ -35,7 +34,8 @@
 
 #define CCO_REDBLACKTREE_PROPERTIES \
 	cco_redblacktree_node *redblacktreeRoot;\
-	cco_redblacktree_node *redblacktreeCursor;
+	cco_redblacktree_node *redblacktreeCursor;\
+	int count;
 
 typedef struct cco_redblacktree cco_redblacktree;
 typedef struct cco_redblacktree_node cco_redblacktree_node;
@@ -111,6 +111,8 @@ cco *cco_redblacktree_getWhenGreatest(cco_redblacktree *tree);
 cco *cco_redblacktree_getWhenLessEqual(cco_redblacktree *tree, cco_v *key);
 cco *cco_redblacktree_getWhenLess(cco_redblacktree *tree, cco_v *key);
 cco *cco_redblacktree_getWhenLeast(cco_redblacktree *tree);
+
+int cco_redblacktree_count(cco_redblacktree *tree);b
 
 
 #endif /* CCO_REDBLACKTREE_H_ */
