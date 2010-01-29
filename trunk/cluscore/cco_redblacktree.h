@@ -112,7 +112,7 @@ cco *cco_redblacktree_getWhenLessEqual(cco_redblacktree *tree, cco_v *key);
 cco *cco_redblacktree_getWhenLess(cco_redblacktree *tree, cco_v *key);
 cco *cco_redblacktree_getWhenLeast(cco_redblacktree *tree);
 
-int cco_redblacktree_count(cco_redblacktree *tree);b
+int cco_redblacktree_count(cco_redblacktree *tree);
 
 
 #endif /* CCO_REDBLACKTREE_H_ */
