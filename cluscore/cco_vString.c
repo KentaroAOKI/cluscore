@@ -80,8 +80,8 @@ void cco_vString_baseFinalize(cco_vString *o)
 	if (o->vString_cstring != NULL)
 	{
 		free(o->vString_cstring);
-		cco_release(o->vString_otherstrings);
 	}
+	cco_release(o->vString_otherstrings);
 	return;
 }
 
@@ -491,7 +491,7 @@ static char *cco_vString_format_sub_itoa(char *buf, int buflen, int i)
 	return pos;
 }
 
-cco_vString *cco_vString_getReplasedString(cco_vString *string, char *target_regex,
+cco_vString *cco_vString_getReplacedString(cco_vString *string, char *target_regex,
 		cco_vString *replase_string)
 {
 	regex_t preg;
@@ -543,16 +543,44 @@ cco_vString *cco_vString_getReplasedString(cco_vString *string, char *target_reg
 	return result;
 }
 
-cco_vString *cco_vString_getReplasedStringWithCstring(cco_vString *string, char *target_regex,
+cco_vString *cco_vString_getReplacedStringWithCstring(cco_vString *string, char *target_regex,
 		char *replase_cstring)
 {
 	cco_vString *replase_string;
 	cco_vString *result = NULL;
 
 	replase_string = cco_vString_new(replase_cstring);
-	result = cco_vString_getReplasedString(string, target_regex, replase_string);
+	result = cco_vString_getReplacedString(string, target_regex, replase_string);
 	cc_string_release(replase_string);
 	return result;
+}
+
+void cco_vString_replace(cco_vString *string, char *target_regex,
+		cco_vString *replase_string)
+{
+	cco_vString *replased_string;
+	replased_string = cco_vString_getReplacedString(string, target_regex, replase_string);
+
+	cco_vString_baseFinalize(string);
+	string->vString_cstring = replased_string->vString_cstring;
+	string->vString_otherstrings = replased_string->vString_otherstrings;
+	string->vString_length = replased_string->vString_length;
+	replased_string->vString_cstring = NULL;
+	replased_string->vString_otherstrings = NULL;
+	cco_release(replased_string);
+	return;
+}
+
+void *cco_vString_replaceWithCstring(cco_vString *string, char *target_regex,
+		char *replase_cstring)
+{
+	cco_vString *replase_string;
+	cco_vString *result = NULL;
+
+	replase_string = cco_vString_new(replase_cstring);
+	cco_vString_replace(string, target_regex, replase_string);
+	cc_string_release(replase_string);
+	return;
 }
 
 int cco_vString_toInt(cco_vString *string)
