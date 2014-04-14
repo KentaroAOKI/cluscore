@@ -571,7 +571,7 @@ void cco_vString_replace(cco_vString *string, char *target_regex,
 	return;
 }
 
-void *cco_vString_replaceWithCstring(cco_vString *string, char *target_regex,
+void cco_vString_replaceWithCstring(cco_vString *string, char *target_regex,
 		char *replase_cstring)
 {
 	cco_vString *replase_string;
@@ -592,6 +592,20 @@ int cco_vString_toInt(cco_vString *string)
 	{
 		cstring = cco_vString_getCstring(string);
 		result = atoi(cstring);
+		free(cstring);
+	}
+	return result;
+}
+
+double cco_vString_toDouble(cco_vString *string)
+{
+	char *cstring;
+	double result = -1.0;
+
+	if (string != NULL)
+	{
+		cstring = cco_vString_getCstring(string);
+		result = atof(cstring);
 		free(cstring);
 	}
 	return result;

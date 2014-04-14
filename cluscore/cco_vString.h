@@ -67,8 +67,9 @@ void cco_vString_catenateWithFormat(cco_vString *base_o, char *cstring_format, .
 cco_vString *cco_vString_getReplacedString(cco_vString *string, char *target_regex,	cco_vString *replase_string);
 cco_vString *cco_vString_getReplacedStringWithCstring(cco_vString *string, char *target_regex, char *replase_cstring);
 void cco_vString_replace(cco_vString *string, char *target_regex, cco_vString *replase_string);
-void *cco_vString_replaceWithCstring(cco_vString *string, char *target_regex, char *replase_cstring);
+void cco_vString_replaceWithCstring(cco_vString *string, char *target_regex, char *replase_cstring);
 int cco_vString_toInt(cco_vString *string);
+double cco_vString_toDouble(cco_vString *string);
 
 #endif /* CCO_VSTRING_H_ */
 
