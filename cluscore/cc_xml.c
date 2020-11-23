@@ -255,7 +255,7 @@ void cc_xml_read_parse_node(cc_xml *xml, xmlNodePtr this_node)
 
 void cc_xml_read(cc_xml *xml, char *uri)
 {
-	xmlDocPtr doc;
+	xmlDocPtr doc = NULL;
 	xmlNodePtr cur;
 
 	do {
@@ -278,7 +278,7 @@ void cc_xml_read(cc_xml *xml, char *uri)
 }
 void cc_xml_readBuffer(cc_xml *xml, char *buff)
 {
-	xmlDocPtr doc;
+	xmlDocPtr doc = NULL;
 	xmlNodePtr cur;
 
 	do {

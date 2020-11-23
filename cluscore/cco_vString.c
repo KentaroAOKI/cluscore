@@ -316,7 +316,7 @@ char *cco_vString_getCstring(void *o)
 	int size;
 	cco_vString *work_string;
 	char *work_cstring;
-	char *cstring;
+	char *cstring = NULL;
 	char *cstring_ptr;
 	do {
 		if (string == NULL || !cco_compareClass(string, cco_vString))

@@ -36,7 +36,7 @@ cco_defineClass(cco_vData);
 
 cco_vData *cco_vData_baseNew(int size)
 {
-	cco_vData *o;
+	cco_vData *o = NULL;
 	do {
 		if (size < sizeof(cco_vData))
 		{
