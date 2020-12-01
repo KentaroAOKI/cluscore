@@ -75,6 +75,7 @@ void cco_redblacktree_baseInitialize(cco_redblacktree *o)
 {
 	o->baseRelease = &cco_redblacktree_baseRelease;
 	o->redblacktreeRoot = &g_cco_redblacktree_node_nil;
+	o->count = 0;
 	return;
 }
 
