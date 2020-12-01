@@ -200,7 +200,7 @@ void cco_vXml_read_parse_node(cco_vXml *xml, xmlNodePtr this_node)
 
 void cco_vXml_read(cco_vXml *xml, char *uri)
 {
-	xmlDocPtr doc;
+	xmlDocPtr doc = NULL;
 	xmlNodePtr cur;
 
 	do {
@@ -223,7 +223,7 @@ void cco_vXml_read(cco_vXml *xml, char *uri)
 }
 void cco_vXml_readBuffer(cco_vXml *xml, char *buff)
 {
-	xmlDocPtr doc;
+	xmlDocPtr doc = NULL;
 	xmlNodePtr cur;
 
 	do {

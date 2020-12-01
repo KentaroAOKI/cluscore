@@ -41,7 +41,7 @@ int g_cco_baseId;
 
 cco *cco_baseNew(int size)
 {
-	cco *o;
+	cco *o = NULL;
 	do {
 		if (size < sizeof(cco)) {
 			break;

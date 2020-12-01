@@ -36,7 +36,7 @@ cco_defineClass(cco_v);
 
 cco_v *cco_v_baseNew(int size)
 {
-	cco_v *o;
+	cco_v *o = NULL;
 	do {
 		if (size < sizeof(cco_v))
 		{
